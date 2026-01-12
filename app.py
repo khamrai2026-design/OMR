@@ -571,7 +571,7 @@ def submit_omr_page():
     col1, col2 = st.columns(2)
     
     with col1:
-        student_name = st.text_input("Student Name", placeholder="Enter your name")
+        student_name = st.text_input("Student Name", value="Arin Khamrai")
     
     with col2:
         chapter_name = st.selectbox(
@@ -760,7 +760,7 @@ def view_results_page():
                         "Status": "✅ Correct" if submitted_answers[i] == correct_answers[i] else "❌ Wrong"
                     })
                 
-                st.dataframe(pd.DataFrame(comparison_data), use_container_width=True)
+                st.dataframe(pd.DataFrame(comparison_data), use_container_width=True,hide_index=True)
         else:
             st.info("No attempts found for the selected criteria.")
 
