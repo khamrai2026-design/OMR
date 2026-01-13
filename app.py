@@ -158,31 +158,461 @@ def main():
     st.set_page_config(page_title="OMR Sheet Submission System",
                        page_icon="📝", layout="wide")
 
+    # Premium UI/UX Design with Bootstrap & Custom CSS
     st.markdown("""
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
     <style>
-    .stRadio > label {
-        font-weight: bold;
-        font-size: 16px;
-        margin-bottom: 10px;
+    /* ==================== GLOBAL STYLES ==================== */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    
+    * {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
-    .stRadio > div {
+    
+    /* Smooth scrolling */
+    html {
+        scroll-behavior: smooth;
+    }
+    
+    /* ==================== ANIMATIONS ==================== */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes slideInLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+    }
+    
+    @keyframes shimmer {
+        0% {
+            background-position: -1000px 0;
+        }
+        100% {
+            background-position: 1000px 0;
+        }
+    }
+    
+    /* ==================== MAIN LAYOUT ==================== */
+    .main {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background-attachment: fixed;
+        padding-bottom: 3rem;
+    }
+    
+    .main > div {
+        animation: fadeInUp 0.6s ease-out;
+    }
+    
+    .block-container {
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
+    }
+    
+    /* ==================== SIDEBAR ==================== */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    [data-testid="stSidebar"] .css-1d391kg {
+        padding-top: 2rem;
+    }
+    
+    /* Sidebar text */
+    [data-testid="stSidebar"] * {
+        color: #e2e8f0 !important;
+    }
+    
+    /* Sidebar selectbox */
+    [data-testid="stSidebar"] .stSelectbox > div > div {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+    }
+    
+    /* ==================== CARDS & CONTAINERS ==================== */
+    .element-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .element-container:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+    }
+    
+    /* ==================== TYPOGRAPHY ==================== */
+    h1, h2, h3, h4, h5, h6 {
+        font-weight: 700 !important;
+        color: #1e293b !important;
+        letter-spacing: -0.5px;
+    }
+    
+    h1 {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-size: 2.5rem !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    h2 {
+        color: #334155 !important;
+        font-size: 1.75rem !important;
+    }
+    
+    h3 {
+        color: #475569 !important;
+        font-size: 1.5rem !important;
+    }
+    
+    p {
+        color: #64748b;
+        line-height: 1.7;
+    }
+    
+    /* ==================== OMR RADIO BUTTONS ==================== */
+    .stRadio > label {
+        font-weight: 600 !important;
+        font-size: 1.1rem !important;
+        color: #1e293b !important;
+        margin-bottom: 12px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    
+    .stRadio > div[role="radiogroup"] {
         display: flex !important;
         flex-direction: row !important;
-        gap: 10px !important;
+        gap: 16px !important;
+        padding: 10px 0 !important;
         flex-wrap: nowrap !important;
     }
-    .stRadio > div > label {
-        background-color: white;
-        padding: 8px 16px;
-        border-radius: 5px;
-        border: 1px solid #ddd;
-        cursor: pointer;
-        white-space: nowrap;
+    
+    /* OMR Bubble Design */
+    .stRadio div[role="radiogroup"] > label {
+        background: linear-gradient(145deg, #ffffff, #f8fafc) !important;
+        border: 3px solid #cbd5e1 !important;
+        border-radius: 50% !important;
+        width: 50px !important;
+        height: 50px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-weight: 700 !important;
+        font-size: 1.1rem !important;
+        color: #475569 !important;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
     }
-    .stRadio > div > label:hover {
-        background-color: #f0f0f0;
+    
+    /* Hover effect */
+    .stRadio div[role="radiogroup"] > label:hover {
+        border-color: #667eea !important;
+        background: linear-gradient(145deg, #eff6ff, #dbeafe) !important;
+        transform: scale(1.15) rotate(5deg);
+        box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+    }
+    
+    /* Selected state */
+    .stRadio div[role="radiogroup"] > label:has(input:checked) {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        border-color: #667eea !important;
+        color: white !important;
+        transform: scale(1.1);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
+        animation: pulse 0.5s ease-in-out;
+    }
+    
+    /* Hide default radio circle */
+    .stRadio div[role="radiogroup"] > label > div:first-child {
+        display: none !important;
+    }
+    
+    /* ==================== BUTTONS ==================== */
+    .stButton > button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 12px !important;
+        padding: 0.75rem 2rem !important;
+        font-weight: 600 !important;
+        font-size: 1rem !important;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stButton > button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.5s;
+    }
+    
+    .stButton > button:hover::before {
+        left: 100%;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+    }
+    
+    .stButton > button:active {
+        transform: translateY(-1px);
+    }
+    
+    /* ==================== METRICS ==================== */
+    div[data-testid="stMetric"] {
+        background: linear-gradient(145deg, #ffffff, #f8fafc);
+        padding: 1.5rem !important;
+        border-radius: 16px;
+        border: 2px solid transparent;
+        background-clip: padding-box;
+        position: relative;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    div[data-testid="stMetric"]::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 16px;
+        padding: 2px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        z-index: -1;
+    }
+    
+    div[data-testid="stMetric"]:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+    }
+    
+    div[data-testid="stMetric"] label {
+        color: #64748b !important;
+        font-weight: 600 !important;
+        font-size: 0.875rem !important;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    div[data-testid="stMetric"] [data-testid="stMetricValue"] {
+        color: #1e293b !important;
+        font-weight: 800 !important;
+        font-size: 2rem !important;
+    }
+    
+    /* ==================== INPUT FIELDS ==================== */
+    .stTextInput > div > div > input,
+    .stNumberInput > div > div > input,
+    .stSelectbox > div > div {
+        border: 2px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        padding: 0.75rem 1rem !important;
+        font-size: 1rem !important;
+        transition: all 0.3s ease !important;
+        background-color: white !important;
+    }
+    
+    .stTextInput > div > div > input:focus,
+    .stNumberInput > div > div > input:focus,
+    .stSelectbox > div > div:focus-within {
+        border-color: #667eea !important;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+        outline: none !important;
+    }
+    
+    /* ==================== DATAFRAMES ==================== */
+    .stDataFrame {
+        border-radius: 16px !important;
+        overflow: hidden !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+        border: 1px solid #e2e8f0 !important;
+    }
+    
+    .stDataFrame table {
+        font-size: 0.95rem !important;
+    }
+    
+    .stDataFrame thead tr th {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        font-weight: 600 !important;
+        padding: 1rem !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.875rem !important;
+    }
+    
+    .stDataFrame tbody tr {
+        transition: all 0.2s ease;
+    }
+    
+    .stDataFrame tbody tr:hover {
+        background-color: #f8fafc !important;
+        transform: scale(1.01);
+    }
+    
+    /* ==================== EXPANDER ==================== */
+    .streamlit-expanderHeader {
+        background: linear-gradient(145deg, #f8fafc, #ffffff) !important;
+        border-radius: 12px !important;
+        border: 2px solid #e2e8f0 !important;
+        padding: 1rem !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    .streamlit-expanderHeader:hover {
+        border-color: #667eea !important;
+        background: linear-gradient(145deg, #eff6ff, #f8fafc) !important;
+    }
+    
+    /* ==================== INFO/WARNING/SUCCESS BOXES ==================== */
+    .stAlert {
+        border-radius: 12px !important;
+        border-left: 4px solid !important;
+        padding: 1rem 1.5rem !important;
+        backdrop-filter: blur(10px);
+    }
+    
+    .stSuccess {
+        background: linear-gradient(145deg, #ecfdf5, #d1fae5) !important;
+        border-left-color: #10b981 !important;
+    }
+    
+    .stWarning {
+        background: linear-gradient(145deg, #fffbeb, #fef3c7) !important;
+        border-left-color: #f59e0b !important;
+    }
+    
+    .stError {
+        background: linear-gradient(145deg, #fef2f2, #fee2e2) !important;
+        border-left-color: #ef4444 !important;
+    }
+    
+    .stInfo {
+        background: linear-gradient(145deg, #eff6ff, #dbeafe) !important;
+        border-left-color: #3b82f6 !important;
+    }
+    
+    /* ==================== SCROLLBAR ==================== */
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 10px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+        border: 2px solid #f1f5f9;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+    
+    /* ==================== FOOTER ==================== */
+    .footer {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        color: #64748b;
+        text-align: center;
+        padding: 0.75rem;
+        font-size: 0.875rem;
+        border-top: 1px solid rgba(226, 232, 240, 0.8);
+        z-index: 999;
+        box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 768px) {
+        h1 {
+            font-size: 2rem !important;
+        }
+        
+        .stRadio div[role="radiogroup"] > label {
+            width: 40px !important;
+            height: 40px !important;
+            font-size: 0.9rem !important;
+        }
     }
     </style>
+    
+    <!-- Footer -->
+    <div class="footer">
+        <i class="bi bi-shield-check"></i> © 2026 OMR Professional System • Powered by Streamlit & Bootstrap 5
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     """, unsafe_allow_html=True)
 
     # Initialize database
