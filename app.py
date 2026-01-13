@@ -3,7 +3,6 @@ import sqlite3
 from datetime import datetime
 import pandas as pd
 import json
-from PIL import Image
 import os
 
 # Helper functions for options
@@ -159,144 +158,31 @@ def main():
     st.set_page_config(page_title="OMR Sheet Submission System",
                        page_icon="📝", layout="wide")
 
-    # Custom CSS for Premium Look
     st.markdown("""
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-    /* Global Styles */
-    html, body, [class*="st-"] {
-        font-family: 'Inter', sans-serif;
-    }
-
-    /* Animation */
-    @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    .main > div {
-        animation: fadeInUp 0.6s ease-out;
-    }
-
-    .main {
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    }
-
-    /* Card/Sheet Styling */
-    .omr-sheet-container {
-        background-color: white;
-        padding: 3rem;
-        border-radius: 16px;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-        border: 1px solid #e2e8f0;
-        margin-top: 2rem;
-    }
-
-    /* OMR Radio Button Styling */
     .stRadio > label {
-        font-weight: 600 !important;
-        font-size: 1rem !important;
-        color: #334155 !important;
-        margin-bottom: 8px !important;
+        font-weight: bold;
+        font-size: 16px;
+        margin-bottom: 10px;
     }
-
-    .stRadio > div[role="radiogroup"] {
+    .stRadio > div {
         display: flex !important;
         flex-direction: row !important;
-        gap: 15px !important;
-        padding: 5px 0 !important;
+        gap: 10px !important;
+        flex-wrap: nowrap !important;
     }
-
-    .stRadio div[role="radiogroup"] > label {
-        background-color: #f8fafc !important;
-        border: 2px solid #cbd5e1 !important;
-        border-radius: 50% !important;
-        width: 40px !important;
-        height: 40px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        cursor: pointer !important;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        font-weight: 700 !important;
-        color: #475569 !important;
-    }
-
-    .stRadio div[role="radiogroup"] > label:hover {
-        border-color: #2563eb !important;
-        background-color: #eff6ff !important;
-        transform: scale(1.1);
-    }
-
-    div[data-testid="stRadio"] label[data-checked="true"] {
-        background-color: #1e293b !important;
-        border-color: #1e293b !important;
-        color: white !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
-        transform: scale(1.05);
-    }
-
-    /* Buttons */
-    .stButton > button {
-        border-radius: 12px !important;
-        font-weight: 700 !important;
-        padding: 0.75rem 1.5rem !important;
-        transition: all 0.3s ease !important;
-        border: none !important;
-    }
-
-    .stButton > button[kind="primary"] {
-        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
-        color: white !important;
-    }
-
-    .stButton > button[kind="secondary"] {
-        background-color: #f1f5f9 !important;
-        color: #1e293b !important;
-    }
-
-    .stButton > button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 15px rgba(37, 99, 235, 0.2) !important;
-    }
-
-    /* Metrics */
-    div[data-testid="stMetric"] {
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(226, 232, 240, 0.8);
-        padding: 20px !important;
-        border-radius: 16px;
-    }
-
-    /* Footer Styles */
-    .footer {
-        position: fixed;
-        left: 0;
-        bottom: 0;
-        width: 100%;
+    .stRadio > div > label {
         background-color: white;
-        color: #64748b;
-        text-align: center;
-        padding: 10px;
-        font-size: 0.8rem;
-        border-top: 1px solid #e2e8f0;
-        z-index: 99;
+        padding: 8px 16px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+        cursor: pointer;
+        white-space: nowrap;
     }
-
-    /* Tables */
-    .stDataFrame {
-        border-radius: 12px;
-        overflow: hidden;
-        border: 1px solid #e2e8f0;
+    .stRadio > div > label:hover {
+        background-color: #f0f0f0;
     }
-
     </style>
-    <div class="footer">
-        © 2026 OMR Sheet Submission System • Built with Streamlit Premium UI
-    </div>
     """, unsafe_allow_html=True)
 
     # Initialize database
@@ -317,101 +203,15 @@ def main():
     # Sidebar for navigation
     menu = st.sidebar.selectbox(
         "Navigation",
-        ["Exam", "Create Chapter", "View Results", "Analytics"]
+        ["Exam",  "View Results", "Analytics"]
     )
 
-    if menu == "Create Chapter":
-        create_chapter_page()
-    elif menu == "Exam":
+    if menu == "Exam":
         submit_omr_page()
     elif menu == "View Results":
         view_results_page()
     elif menu == "Analytics":
         analytics_page()
-
-
-def create_chapter_page():
-    """Page to create a new chapter with answer key"""
-    st.header("📚 Create New Chapter")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        chapter_name = st.text_input(
-            "Chapter Name", placeholder="e.g., Chapter 1: Introduction")
-        num_questions = st.number_input(
-            "Number of Questions", min_value=1, max_value=100, value=10)
-
-    with col2:
-        num_options = st.number_input(
-            "Number of Options per Question", min_value=2, max_value=6, value=4)
-
-    st.markdown("### Enter Correct Answers")
-    option_letters = get_option_letters(num_options)
-    st.info(
-        f"Select the correct option ({', '.join(option_letters)}) for each question")
-
-    # Create answer key input with OMR-style radio buttons
-    correct_answers = []
-
-    # Calculate questions per column
-    questions_per_column = (num_questions + 1) // 2  # Ceiling division
-
-    # Create 2 columns
-    col1, col2 = st.columns(2)
-
-    # First column - questions 1 to questions_per_column
-    with col1:
-        for i in range(questions_per_column):
-            if i < num_questions:
-                answer = st.radio(
-                    f"Q{i+1}",
-                    options=option_letters,
-                    horizontal=True,
-                    index=None,
-                    key=f"answer_{i}"
-                )
-                correct_answers.append((i, answer))  # Store with index
-
-    # Second column - remaining questions
-    with col2:
-        for i in range(questions_per_column, num_questions):
-            answer = st.radio(
-                f"Q{i+1}",
-                options=option_letters,
-                horizontal=True,
-                index=None,
-                key=f"answer_{i}"
-            )
-            correct_answers.append((i, answer))  # Store with index
-
-    # Sort by index and extract just the answers
-    correct_answers.sort(key=lambda x: x[0])
-    correct_answers = [ans for idx, ans in correct_answers]
-
-    if st.button("💾 Save Chapter", type="primary"):
-        if not chapter_name:
-            st.error("Please enter a chapter name!")
-        elif None in correct_answers:
-            st.error("⚠️ Please answer all questions before saving!")
-        else:
-            success, message = save_chapter(
-                chapter_name, num_questions, num_options, correct_answers)
-            if success:
-                st.success(message)
-            else:
-                st.error(message)
-
-    # Display existing chapters
-    st.markdown("---")
-    st.subheader("Existing Chapters")
-    chapters_df = get_all_chapters()
-    if not chapters_df.empty:
-        display_df = chapters_df[['chapter_name',
-                                  'num_questions', 'num_options', 'created_at']]
-        st.dataframe(display_df, width='stretch', hide_index=True)
-    else:
-        st.info("No chapters created yet.")
 
 
 def submit_omr_page():
