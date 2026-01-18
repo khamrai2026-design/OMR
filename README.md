@@ -24,15 +24,19 @@ A comprehensive Streamlit application for managing OMR (Optical Mark Recognition
 - Automatic scoring
 - Support for multiple attempts per student per chapter
 - View answer comparison after submission
+- **Filter answers by status (All/Correct/Incorrect)**
+- Download detailed Excel report with performance analysis
 
-### 3. View Results
+### 4. View Results
 - View results chapter-wise
 - Filter by student name
 - See all attempts with scores and percentages
 - Detailed view of individual attempts
 - Compare student answers with correct answers
+- **Filter comparison grid by status (All/Correct/Incorrect)**
+- **Export answer comparison to Excel**
 
-### 4. Analytics Dashboard
+### 5. Analytics Dashboard
 - Overall statistics (total chapters, attempts, students)
 - Chapter-wise performance metrics
 - Top performers leaderboard
@@ -120,6 +124,8 @@ The application uses SQLite database (`omr_data.db`) with two main tables:
 ✅ Multiple attempts per student per chapter
 ✅ Automatic scoring
 ✅ Answer comparison view
+✅ **Filter answers by status (All/Correct/Incorrect)**
+✅ **Excel export for answer comparison and detailed reports**
 ✅ Chapter-wise result filtering
 ✅ Student-wise result filtering
 ✅ Analytics dashboard
