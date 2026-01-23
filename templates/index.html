@@ -28,6 +28,23 @@
                 <li><a href="#" onclick="showPage('results')" class="nav-link">📊 Results</a></li>
                 <li><a href="#" onclick="showPage('analytics')" class="nav-link">📈 Analytics</a></li>
             </ul>
+            <div class="theme-selector-nav">
+                <select id="themeSelect" onchange="changeTheme(this.value)" title="Select Theme">
+                    <option value="indigo">🎨 Indigo</option>
+                    <option value="ocean">🌊 Ocean</option>
+                    <option value="forest">🌲 Forest</option>
+                    <option value="sunset">🌅 Sunset</option>
+                    <option value="violet">💜 Violet</option>
+                    <option value="slate">🩶 Slate</option>
+                    <option value="rose">🌹 Rose</option>
+                    <option value="emerald">💚 Emerald</option>
+                    <option value="amber">🟡 Amber</option>
+                    <option value="coral">🪸 Coral</option>
+                    <option value="cyberpunk">⚡ Cyberpunk</option>
+                    <option value="teal">🔵 Teal</option>
+                    <option value="sky">☁️ Sky</option>
+                </select>
+            </div>
         </div>
     </nav>
 
@@ -36,10 +53,10 @@
         <!-- Exam Page -->
         <section id="exam" class="page active">
             <div class="hero-section">
-                <div class="hero-content">
+                <div class="hero-content" style="padding: 2rem;">
                     <span class="hero-badge">🎯 Smart Examination</span>
-                    <h2>Take a Test</h2>
-                    <p>Test your knowledge and track your progress with instant results and detailed analytics.</p>
+                    <h2 style="font-size: 2rem;">Take a Test</h2>
+                    <p style="font-size: 0.95rem;">Test your knowledge and track your progress with instant results and detailed analytics.</p>
                 </div>
             </div>
 

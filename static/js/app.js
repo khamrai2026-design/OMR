@@ -13,7 +13,56 @@ document.addEventListener('DOMContentLoaded', () => {
     loadChapters();
     loadResultsChapters();
     setupNavigation();
+    initializeTheme();
 });
+
+// ==================== Theme Management ====================
+const themeConfigs = {
+    indigo: { primary: '#6366f1', primaryDark: '#4f46e5', secondary: '#ec4899', accent: '#8b5cf6' },
+    ocean: { primary: '#0891b2', primaryDark: '#0e7490', secondary: '#06b6d4', accent: '#00d9ff' },
+    forest: { primary: '#059669', primaryDark: '#047857', secondary: '#10b981', accent: '#34d399' },
+    sunset: { primary: '#ea580c', primaryDark: '#c2410c', secondary: '#f97316', accent: '#fb923c' },
+    violet: { primary: '#9333ea', primaryDark: '#7e22ce', secondary: '#a855f7', accent: '#d946ef' },
+    slate: { primary: '#64748b', primaryDark: '#475569', secondary: '#475569', accent: '#78716c' },
+    rose: { primary: '#e11d48', primaryDark: '#be185d', secondary: '#f43f5e', accent: '#fb7185' },
+    emerald: { primary: '#10b981', primaryDark: '#059669', secondary: '#34d399', accent: '#6ee7b7' },
+    amber: { primary: '#f59e0b', primaryDark: '#d97706', secondary: '#fbbf24', accent: '#fcd34d' },
+    coral: { primary: '#ff6b6b', primaryDark: '#ff5252', secondary: '#ff8787', accent: '#ffa5a5' },
+    cyberpunk: { primary: '#ec0aff', primaryDark: '#d000e8', secondary: '#00ffff', accent: '#00ff88' },
+    teal: { primary: '#14b8a6', primaryDark: '#0d9488', secondary: '#2dd4bf', accent: '#5eead4' },
+    sky: { primary: '#0ea5e9', primaryDark: '#0284c7', secondary: '#38bdf8', accent: '#7dd3fc' }
+};
+
+function initializeTheme() {
+    const savedTheme = localStorage.getItem('selectedTheme') || 'indigo';
+    const themeSelect = document.getElementById('themeSelect');
+    if (themeSelect) {
+        themeSelect.value = savedTheme;
+    }
+    applyTheme(savedTheme);
+}
+
+function changeTheme(themeName) {
+    localStorage.setItem('selectedTheme', themeName);
+    applyTheme(themeName);
+}
+
+function applyTheme(themeName) {
+    const theme = themeConfigs[themeName];
+    if (!theme) return;
+    
+    const root = document.documentElement;
+    root.style.setProperty('--primary', theme.primary);
+    root.style.setProperty('--primary-dark', theme.primaryDark);
+    root.style.setProperty('--secondary', theme.secondary);
+    root.style.setProperty('--accent', theme.accent);
+    
+    // Update theme select dropdown
+    const themeSelect = document.getElementById('themeSelect');
+    if (themeSelect) {
+        themeSelect.value = themeName;
+    }
+}
 
 // ==================== Custom Alerts ====================
 function showAlert(message, type = 'warning') {

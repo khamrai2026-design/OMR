@@ -39,8 +39,14 @@ class ExamPageUI(BaseUI):
         </div>
         """, unsafe_allow_html=True)
 
-        self.render_header(
-            "Take a Test", "Identify your progress and sharpen your skills.")
+        st.markdown(
+            '<h2 style="font-size: 1.8rem; margin: 0.5rem 0; color: var(--text-main);">Take a Test</h2>',
+            unsafe_allow_html=True
+        )
+        st.markdown(
+            '<p style="font-size: 0.95rem; color: var(--text-muted); margin: 0 0 1.5rem 0;">Identify your progress and sharpen your skills.</p>',
+            unsafe_allow_html=True
+        )
 
         chapters_df = self.chapter_service.get_all_chapters()
         if chapters_df.empty:
@@ -93,12 +99,11 @@ class ExamPageUI(BaseUI):
                     f'</div>', unsafe_allow_html=True)
 
         submitted_answers = []
-        # Use 2 columns for a balanced layout
-        cols = st.columns(2)
-        mid = (chapter.num_questions + 1) // 2
-
+        # Use 3 columns for a more compact layout
+        cols = st.columns(3)
+        
         for i in range(chapter.num_questions):
-            col_idx = 0 if i < mid else 1
+            col_idx = i % 3  # Distribute questions across 3 columns
             with cols[col_idx]:
                 ans = st.radio(
                     f"Question {i+1}",
