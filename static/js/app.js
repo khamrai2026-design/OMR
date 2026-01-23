@@ -9,7 +9,9 @@ let appState = {
     timerRunning: false,
     timerPaused: false,
     timerSeconds: 0,
-    timerInterval: null
+    timerInterval: null,
+    examStartTime: null,
+    examEndTime: null
 };
 
 // Initialize app on load
@@ -285,9 +287,10 @@ async function loadChapterDetails() {
         document.getElementById('answerSheet').style.display = 'block';
         document.getElementById('resultCard').style.display = 'none';
 
-        // Reset timer
+        // Reset timer and record start time
         stopTimer();
         appState.timerSeconds = 0;
+        appState.examStartTime = new Date();
         updateTimerDisplay();
         
         // Render questions
@@ -342,6 +345,9 @@ function renderQuestions(chapter) {
                 // Add selected to current
                 btn.classList.add('selected');
                 appState.currentAnswers[i] = option;
+                
+                // Auto-save answers
+                saveAttemptedAnswers();
             };
             optionsGrid.appendChild(btn);
         });
@@ -349,6 +355,93 @@ function renderQuestions(chapter) {
         questionGroup.appendChild(label);
         questionGroup.appendChild(optionsGrid);
         container.appendChild(questionGroup);
+    }
+    
+    // Load previously saved answers for this chapter
+    loadSavedAnswers();
+}
+
+// ==================== Answer Saving & Recovery ====================
+function getAttemptKey() {
+    const studentName = document.getElementById('studentName').value;
+    const chapterId = document.getElementById('chapterSelect').value;
+    return `exam_attempt_${studentName}_${chapterId}`;
+}
+
+function saveAttemptedAnswers() {
+    const key = getAttemptKey();
+    const savedData = {
+        answers: appState.currentAnswers,
+        timestamp: new Date().toISOString(),
+        studentName: document.getElementById('studentName').value,
+        chapterId: document.getElementById('chapterSelect').value
+    };
+    localStorage.setItem(key, JSON.stringify(savedData));
+    
+    // Show save indicator (optional)
+    showSaveIndicator();
+}
+
+function loadSavedAnswers() {
+    const key = getAttemptKey();
+    const savedData = localStorage.getItem(key);
+    
+    if (savedData) {
+        try {
+            const data = JSON.parse(savedData);
+            appState.currentAnswers = data.answers;
+            
+            // Restore selected buttons
+            const container = document.getElementById('questionsContainer');
+            Object.entries(appState.currentAnswers).forEach(([questionIndex, answer]) => {
+                const questionIndex_num = parseInt(questionIndex);
+                const buttons = container.querySelectorAll('.question-group')[questionIndex_num]?.querySelectorAll('.option-btn');
+                if (buttons) {
+                    buttons.forEach(btn => {
+                        if (btn.textContent === answer) {
+                            btn.classList.add('selected');
+                        }
+                    });
+                }
+            });
+            
+            console.log('Restored saved answers');
+        } catch (e) {
+            console.log('Could not load saved answers');
+        }
+    }
+}
+
+function clearSavedAnswers() {
+    const key = getAttemptKey();
+    localStorage.removeItem(key);
+}
+
+function showSaveIndicator() {
+    const indicator = document.getElementById('saveIndicator');
+    if (!indicator) {
+        const newIndicator = document.createElement('div');
+        newIndicator.id = 'saveIndicator';
+        newIndicator.style.position = 'fixed';
+        newIndicator.style.bottom = '20px';
+        newIndicator.style.right = '20px';
+        newIndicator.style.background = '#10b981';
+        newIndicator.style.color = 'white';
+        newIndicator.style.padding = '10px 16px';
+        newIndicator.style.borderRadius = '8px';
+        newIndicator.style.fontSize = '0.9rem';
+        newIndicator.style.fontWeight = '600';
+        newIndicator.style.zIndex = '999';
+        newIndicator.style.opacity = '0.9';
+        newIndicator.style.transition = 'opacity 0.3s ease';
+        newIndicator.textContent = '💾 Answers Saved';
+        document.body.appendChild(newIndicator);
+        
+        // Remove after 2 seconds
+        setTimeout(() => {
+            newIndicator.style.opacity = '0';
+            setTimeout(() => newIndicator.remove(), 300);
+        }, 2000);
     }
 }
 
@@ -386,8 +479,9 @@ async function submitExam() {
         submittedAnswers.push(appState.currentAnswers[i] || null);
     }
     
-    // Stop timer
+    // Stop timer and record end time
     stopTimer();
+    appState.examEndTime = new Date();
     const timeTaken = appState.timerSeconds;
 
     try {
@@ -400,13 +494,18 @@ async function submitExam() {
                 student_name: studentName,
                 chapter_id: parseInt(chapterId),
                 submitted_answers: submittedAnswers,
-                time_taken: timeTaken
+                time_taken: timeTaken,
+                start_time: appState.examStartTime.toISOString(),
+                end_time: appState.examEndTime.toISOString()
             })
         });
 
         const result = await response.json();
 
         if (result.success) {
+            // Clear saved answers
+            clearSavedAnswers();
+            
             // Show results
             displayResults(result, submittedAnswers, timeTaken);
 

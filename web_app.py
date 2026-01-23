@@ -48,14 +48,26 @@ def init_db():
                   total_questions INTEGER NOT NULL,
                   attempt_number INTEGER NOT NULL,
                   time_taken INTEGER DEFAULT 0,
+                  start_time TIMESTAMP,
+                  end_time TIMESTAMP,
                   submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                   FOREIGN KEY (chapter_id) REFERENCES chapters(id))''')
 
-    # Add time_taken column if it doesn't exist (for database migration)
+    # Add time_taken, start_time, end_time columns if they don't exist (for database migration)
     try:
         c.execute('SELECT time_taken FROM attempts LIMIT 1')
     except sqlite3.OperationalError:
         c.execute('ALTER TABLE attempts ADD COLUMN time_taken INTEGER DEFAULT 0')
+    
+    try:
+        c.execute('SELECT start_time FROM attempts LIMIT 1')
+    except sqlite3.OperationalError:
+        c.execute('ALTER TABLE attempts ADD COLUMN start_time TIMESTAMP')
+    
+    try:
+        c.execute('SELECT end_time FROM attempts LIMIT 1')
+    except sqlite3.OperationalError:
+        c.execute('ALTER TABLE attempts ADD COLUMN end_time TIMESTAMP')
 
     conn.commit()
     conn.close()
@@ -91,6 +103,8 @@ def submit_exam():
     chapter_id = data.get('chapter_id')
     submitted_answers = data.get('submitted_answers')
     time_taken = data.get('time_taken', 0)  # Time in seconds
+    start_time = data.get('start_time')  # ISO format datetime
+    end_time = data.get('end_time')      # ISO format datetime
 
     conn = get_db()
     
@@ -111,11 +125,11 @@ def submit_exam():
     ).fetchone()
     attempt_number = (attempt['max_attempt'] or 0) + 1
     
-    # Save attempt
+    # Save attempt with start_time and end_time
     conn.execute(
-        '''INSERT INTO attempts (chapter_id, student_name, submitted_answers, score, total_questions, attempt_number, time_taken)
-           VALUES (?, ?, ?, ?, ?, ?, ?)''',
-        (chapter_id, student_name, json.dumps(submitted_answers), score, len(correct_answers), attempt_number, time_taken)
+        '''INSERT INTO attempts (chapter_id, student_name, submitted_answers, score, total_questions, attempt_number, time_taken, start_time, end_time)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+        (chapter_id, student_name, json.dumps(submitted_answers), score, len(correct_answers), attempt_number, time_taken, start_time, end_time)
     )
     conn.commit()
     conn.close()
