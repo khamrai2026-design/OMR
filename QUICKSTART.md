@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-## 🚀 Getting Started with the Refactored OMR System
+## 🚀 Getting Started with the  OMR System
 
 ### Prerequisites
 - Python 3.7 or higher
