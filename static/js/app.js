@@ -10,26 +10,10 @@ let appState = {
 
 // Initialize app on load
 document.addEventListener('DOMContentLoaded', () => {
-    initTheme();
     loadChapters();
     loadResultsChapters();
     setupNavigation();
 });
-
-// ==================== Theme Management ====================
-function initTheme() {
-    const savedTheme = localStorage.getItem('omr-theme') || 'default';
-    changeTheme(savedTheme);
-
-    // Update selector if it exists
-    const selector = document.getElementById('themeSelector');
-    if (selector) selector.value = savedTheme;
-}
-
-function changeTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('omr-theme', theme);
-}
 
 // ==================== Custom Alerts ====================
 function showAlert(message, type = 'warning') {
@@ -412,7 +396,7 @@ async function loadResults() {
                 <td>${grade}</td>
                 <td>${time}</td>
                 <td>${date}</td>
-                <td><button onclick="viewAttemptFromHistory(${attempts.indexOf(attempt)})" class="btn btn-sm">View</button></td>
+                <td><button onclick="showAttemptDetails()" class="btn btn-sm">View</button></td>
             `;
             tbody.appendChild(tr);
         });
@@ -429,20 +413,11 @@ async function loadResults() {
     }
 }
 
-function viewAttemptFromHistory(index) {
-    document.getElementById('attemptSelect').value = index;
-    showAttemptDetails();
-
-    // Smooth scroll to the detailed result view
-    document.getElementById('detailedResult').scrollIntoView({ behavior: 'smooth' });
-}
-
 function showAttemptDetails() {
     const chapterName = document.getElementById('resultsChapterSelect').value;
-    const attemptSelect = document.getElementById('attemptSelect');
-    const attemptIdx = parseInt(attemptSelect.value);
+    const attemptIdx = parseInt(document.getElementById('attemptSelect').value);
 
-    if (!chapterName || isNaN(attemptIdx)) return;
+    if (!chapterName || attemptIdx === undefined) return;
 
     fetch(`/api/results/${chapterName}`)
         .then(r => r.json())

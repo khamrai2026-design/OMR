@@ -5,10 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OMR Digital Suite - Modern Exam Platform</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Flowbite CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,222 +13,121 @@
         rel="stylesheet">
     <!-- Chart.js for analytics visualizations -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: 'var(--primary)',
-                        'primary-dark': 'var(--primary-dark)',
-                        secondary: 'var(--secondary)',
-                    }
-                }
-            }
-        }
-    </script>
 </head>
 
-<body class="bg-[var(--bg-body)] min-h-screen">
+<body>
     <!-- Navigation -->
-    <nav class="fixed top-0 z-50 w-full bg-[var(--card-bg)] border-b border-[var(--border)] backdrop-blur-md">
-        <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-            <a href="#" class="flex items-center space-x-3 rtl:space-x-reverse">
-                <span class="text-3xl">📝</span>
-                <span
-                    class="self-center text-xl font-extrabold whitespace-nowrap bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] font-['Plus_Jakarta_Sans']">OMR
-                    Digital Suite</span>
-            </a>
-            <div class="flex items-center md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
-                <select id="themeSelector"
-                    class="bg-[var(--bg-light)] border border-[var(--border)] text-[var(--text-main)] text-sm rounded-lg focus:ring-[var(--primary)] focus:border-[var(--primary)] block w-full p-2.5 font-semibold"
-                    onchange="changeTheme(this.value)">
-                    <option value="default">🎨 Default</option>
-                    <option value="midnight">🌙 Midnight</option>
-                    <option value="emerald">🌲 Emerald</option>
-                    <option value="sunset">🌅 Sunset</option>
-                    <option value="royal">👑 Royal</option>
-                </select>
-                <button data-collapse-toggle="navbar-sticky" type="button"
-                    class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-[var(--text-muted)] rounded-lg md:hidden hover:bg-[var(--bg-light)] focus:outline-none focus:ring-2 focus:ring-[var(--border)]"
-                    aria-controls="navbar-sticky" aria-expanded="false">
-                    <span class="sr-only">Open main menu</span>
-                    <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 17 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M1 1h15M1 7h15M1 13h15" />
-                    </svg>
-                </button>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="nav-brand">
+                <span class="brand-icon">📝</span>
+                <h1>OMR Digital Suite</h1>
             </div>
-            <div class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1" id="navbar-sticky">
-                <ul
-                    class="flex flex-col p-4 md:p-0 mt-4 font-medium border border-[var(--border)] rounded-lg bg-[var(--card-bg)] md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-transparent">
-                    <li>
-                        <a href="#" onclick="showPage('exam')"
-                            class="block py-2 px-3 text-[var(--primary)] font-bold rounded md:bg-transparent md:p-0 nav-link active"
-                            aria-current="page">📝 Exam</a>
-                    </li>
-                    <li>
-                        <a href="#" onclick="showPage('results')"
-                            class="block py-2 px-3 text-[var(--text-muted)] hover:text-[var(--primary)] rounded hover:bg-gray-100 md:hover:bg-transparent md:p-0 nav-link">📊
-                            Results</a>
-                    </li>
-                    <li>
-                        <a href="#" onclick="showPage('analytics')"
-                            class="block py-2 px-3 text-[var(--text-muted)] hover:text-[var(--primary)] rounded hover:bg-gray-100 md:hover:bg-transparent md:p-0 nav-link">📈
-                            Analytics</a>
-                    </li>
-                </ul>
-            </div>
+            <ul class="nav-menu">
+                <li><a href="#" onclick="showPage('exam')" class="nav-link active">📝 Exam</a></li>
+                <li><a href="#" onclick="showPage('results')" class="nav-link">📊 Results</a></li>
+                <li><a href="#" onclick="showPage('analytics')" class="nav-link">📈 Analytics</a></li>
+            </ul>
         </div>
     </nav>
 
     <!-- Main Content -->
-    <main class="mt-20 px-4 max-w-7xl mx-auto pb-12">
+    <main class="main-container">
         <!-- Exam Page -->
-        <section id="exam" class="page active animate-fade-in">
-            <div
-                class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] p-8 md:p-12 mb-8 text-white shadow-xl">
-                <div class="relative z-10 max-w-2xl">
-                    <span
-                        class="inline-block px-4 py-1.5 mb-4 text-xs font-bold tracking-wider uppercase bg-white/20 backdrop-blur-md rounded-full">🎯
-                        Smart Examination</span>
-                    <h2 class="text-4xl md:text-5xl font-extrabold mb-4 font-['Plus_Jakarta_Sans']">Take a Test</h2>
-                    <p class="text-lg opacity-90 font-medium leading-relaxed">Test your knowledge and track your
-                        progress with instant results and detailed analytics.</p>
+        <section id="exam" class="page active">
+            <div class="hero-section">
+                <div class="hero-content">
+                    <span class="hero-badge">🎯 Smart Examination</span>
+                    <h2>Take a Test</h2>
+                    <p>Test your knowledge and track your progress with instant results and detailed analytics.</p>
                 </div>
-                <!-- Decorative element -->
-                <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
-                <div class="absolute -left-10 -top-10 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
             </div>
 
-            <div class="grid gap-8">
-                <!-- Information Card -->
-                <div
-                    class="p-8 bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl shadow-lg backdrop-blur-md">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-1.5 h-6 bg-[var(--primary)] rounded-full"></div>
-                        <h3 class="text-xl font-bold text-[var(--text-main)]">Student Information</h3>
+            <div class="page-content">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3>Student Information</h3>
                     </div>
-                    <form id="examForm" class="space-y-6">
-                        <div class="grid md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="studentName"
-                                    class="block mb-2 text-sm font-semibold text-[var(--text-main)]">✍️ Student
-                                    Name</label>
-                                <input type="text" id="studentName" name="studentName"
-                                    class="bg-[var(--bg-light)] border border-[var(--border)] text-[var(--text-main)] text-sm rounded-xl focus:ring-[var(--primary)] focus:border-[var(--primary)] block w-full p-4 transition-all duration-200"
-                                    placeholder="Enter your full name" required value="Arin Khamrai">
-                            </div>
-                            <div>
-                                <label for="chapterSelect"
-                                    class="block mb-2 text-sm font-semibold text-[var(--text-main)]">📚 Select
-                                    Chapter</label>
-                                <select id="chapterSelect" name="chapter"
-                                    class="bg-[var(--bg-light)] border border-[var(--border)] text-[var(--text-main)] text-sm rounded-xl focus:ring-[var(--primary)] focus:border-[var(--primary)] block w-full p-4 transition-all duration-200"
-                                    required onchange="loadChapterDetails()">
-                                    <option value="">Loading chapters...</option>
-                                </select>
-                            </div>
+                    <form id="examForm" class="exam-form">
+                        <div class="form-group">
+                            <label for="studentName">✍️ Student Name</label>
+                            <input type="text" id="studentName" name="studentName" placeholder="Enter your full name"
+                                required value="Arin Khamrai">
                         </div>
-                        <div id="attemptInfo"
-                            class="hidden p-4 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] font-semibold text-sm">
+                        <div class="form-group">
+                            <label for="chapterSelect">📚 Select Chapter</label>
+                            <select id="chapterSelect" name="chapter" required onchange="loadChapterDetails()">
+                                <option value="">Loading chapters...</option>
+                            </select>
                         </div>
+                        <div id="attemptInfo" class="attempt-info" style="display: none;"></div>
                     </form>
                 </div>
 
-                <!-- Answer Sheet Card -->
-                <div id="answerSheet"
-                    class="hidden p-8 bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl shadow-lg backdrop-blur-md">
-                    <div class="flex items-center justify-between mb-8">
-                        <div class="flex items-center gap-3">
-                            <div class="w-1.5 h-6 bg-[var(--secondary)] rounded-full"></div>
-                            <h3 class="text-xl font-bold text-[var(--text-main)]">Answer Sheet</h3>
-                        </div>
-                        <span id="questionInfo"
-                            class="px-4 py-1 px-3 text-xs font-bold text-[var(--secondary)] bg-[var(--secondary)]/10 rounded-full border border-[var(--secondary)]/20 uppercase tracking-wider"></span>
+                <div id="answerSheet" class="glass-card" style="display: none;">
+                    <div class="card-header">
+                        <h3>Answer Sheet</h3>
+                        <span id="questionInfo" class="question-info"></span>
                     </div>
-
-                    <div id="questionsContainer" class="questions-grid mb-8"></div>
-
-                    <button onclick="submitExam()"
-                        class="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-[var(--primary)] to-[var(--primary-dark)] text-white font-bold rounded-2xl shadow-lg hover:shadow-xl hover:scale-[1.02] transform transition-all duration-200 focus:ring-4 focus:ring-[var(--primary)]/30">
+                    <div id="questionsContainer" class="questions-grid"></div>
+                    <button onclick="submitExam()" class="btn btn-primary btn-lg">
                         🚀 Submit Examination
                     </button>
                 </div>
 
-                <!-- Result Card -->
-                <div id="resultCard"
-                    class="hidden p-8 bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl shadow-lg backdrop-blur-md">
-                    <div class="flex items-center gap-3 mb-8">
-                        <div class="w-1.5 h-6 bg-green-500 rounded-full"></div>
-                        <h3 class="text-xl font-bold text-[var(--text-main)]">Performance Summary</h3>
+                <div id="resultCard" class="glass-card" style="display: none;">
+                    <div class="card-header">
+                        <h3>Performance Summary</h3>
                     </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                        <div class="p-6 bg-white/40 border border-white/40 rounded-2xl text-center shadow-sm">
-                            <div class="text-3xl font-black text-[var(--primary)] mb-1" id="immediateScoreDisplay">0/0
-                            </div>
-                            <div class="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">Total
-                                Score</div>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="immediateScoreDisplay">0/0</div>
+                            <div class="metric-label">Total Score</div>
                         </div>
-                        <div class="p-6 bg-white/40 border border-white/40 rounded-2xl text-center shadow-sm">
-                            <div class="text-3xl font-black text-[var(--secondary)] mb-1"
-                                id="immediatePercentageDisplay">0%</div>
-                            <div class="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">Percentage
-                            </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="immediatePercentageDisplay">0%</div>
+                            <div class="metric-label">Percentage</div>
                         </div>
-                        <div class="p-6 bg-white/40 border border-white/40 rounded-2xl text-center shadow-sm">
-                            <div class="text-3xl font-black text-[var(--text-main)] mb-1" id="attemptDisplay">1</div>
-                            <div class="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">Attempt
-                                No.</div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="attemptDisplay">1</div>
+                            <div class="metric-label">Attempt No.</div>
                         </div>
                     </div>
 
-                    <div class="overflow-hidden rounded-2xl border border-[var(--border)] mb-10">
-                        <div class="bg-gray-50/50 p-4 border-b border-[var(--border)]">
-                            <h4 class="font-bold text-[var(--text-main)]">Answer Comparison</h4>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm text-left text-[var(--text-main)]">
-                                <thead class="text-xs uppercase bg-gray-50/30 text-[var(--text-muted)]">
-                                    <tr>
-                                        <th class="px-6 py-4 font-bold">Q.No</th>
-                                        <th class="px-6 py-4 font-bold">Your Answer</th>
-                                        <th class="px-6 py-4 font-bold">Correct Answer</th>
-                                        <th class="px-6 py-4 font-bold">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="answerTableBody" class="divide-y divide-[var(--border)]"></tbody>
-                            </table>
-                        </div>
+                    <div class="answer-comparison">
+                        <h4>Answer Comparison</h4>
+                        <table class="results-table">
+                            <thead>
+                                <tr>
+                                    <th>Q.No</th>
+                                    <th>Your Answer</th>
+                                    <th>Correct Answer</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="answerTableBody"></tbody>
+                        </table>
                     </div>
 
                     <!-- Question-wise Review Grid -->
-                    <div class="mt-10 pt-10 border-t border-[var(--border)]">
-                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                            <h4 class="text-xl font-bold text-[var(--text-main)]">📋 Question-wise Review Grid</h4>
-                            <div class="inline-flex rounded-xl shadow-sm bg-gray-100/50 p-1">
-                                <button type="button"
-                                    class="filter-chip active px-5 py-2 text-sm font-bold rounded-lg transition-all"
-                                    data-filter="all"
+                    <div style="margin-top: 2.5rem; border-top: 1px solid var(--border); padding-top: 2.5rem;">
+                        <div class="filter-container">
+                            <h4 style="font-weight: 700; margin: 0; font-size: 1.2rem;">📋 Question-wise Review Grid
+                            </h4>
+                            <div class="filter-group">
+                                <button class="filter-chip active" data-filter="all"
                                     onclick="setReviewFilter('all', 'immediateQuestionReview')">All</button>
-                                <button type="button"
-                                    class="filter-chip px-5 py-2 text-sm font-bold rounded-lg transition-all"
-                                    data-filter="incorrect"
+                                <button class="filter-chip" data-filter="incorrect"
                                     onclick="setReviewFilter('incorrect', 'immediateQuestionReview')">Wrong
                                     Only</button>
-                                <button type="button"
-                                    class="filter-chip px-5 py-2 text-sm font-bold rounded-lg transition-all"
-                                    data-filter="correct"
+                                <button class="filter-chip" data-filter="correct"
                                     onclick="setReviewFilter('correct', 'immediateQuestionReview')">Correct</button>
                             </div>
                         </div>
-                        <div id="immediateQuestionReview" class="question-review-grid transition-all duration-300">
-                        </div>
+                        <div id="immediateQuestionReview" class="question-review-grid"></div>
                     </div>
 
-                    <button onclick="showPage('exam')"
-                        class="mt-10 px-8 py-4 bg-white border border-[var(--border)] text-[var(--text-main)] font-bold rounded-2xl hover:bg-gray-50 transition-all shadow-sm">
+                    <button onclick="showPage('exam')" class="btn btn-secondary btn-lg">
                         ← Take Another Test
                     </button>
                 </div>
@@ -240,190 +135,143 @@
         </section>
 
         <!-- Results Page -->
-        <section id="results" class="page hidden animate-fade-in">
-            <div
-                class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0891b2] to-[#06b6d4] p-8 md:p-12 mb-8 text-white shadow-xl">
-                <div class="relative z-10 max-w-2xl">
-                    <span
-                        class="inline-block px-4 py-1.5 mb-4 text-xs font-bold tracking-wider uppercase bg-white/20 backdrop-blur-md rounded-full">📊
-                        Result Analysis</span>
-                    <h2 class="text-4xl md:text-5xl font-extrabold mb-4 font-['Plus_Jakarta_Sans']">View Results</h2>
-                    <p class="text-lg opacity-90 font-medium leading-relaxed">Review your test attempts and detailed
-                        performance metrics.</p>
+        <section id="results" class="page">
+            <div class="hero-section">
+                <div class="hero-content" style="background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);">
+                    <span class="hero-badge">📊 Result Analysis</span>
+                    <h2>View Results</h2>
+                    <p>Review your test attempts and detailed performance metrics.</p>
                 </div>
-                <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
             </div>
 
-            <div class="grid gap-8">
-                <div
-                    class="p-8 bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl shadow-lg backdrop-blur-md">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-1.5 h-6 bg-[var(--secondary)] rounded-full"></div>
-                        <h3 class="text-xl font-bold text-[var(--text-main)]">Select Attempt</h3>
+            <div class="page-content">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3>Select Attempt</h3>
                     </div>
-                    <form class="grid md:grid-cols-2 gap-6">
+                    <form class="exam-form">
                         <div class="form-group">
-                            <label for="resultsChapterSelect"
-                                class="block mb-2 text-sm font-semibold text-[var(--text-main)]">📚 Select
-                                Chapter</label>
-                            <select id="resultsChapterSelect"
-                                class="bg-[var(--bg-light)] border border-[var(--border)] text-[var(--text-main)] text-sm rounded-xl focus:ring-[var(--primary)] focus:border-[var(--primary)] block w-full p-4"
-                                onchange="loadResults()">
+                            <label for="resultsChapterSelect">📚 Select Chapter</label>
+                            <select id="resultsChapterSelect" onchange="loadResults()">
                                 <option value="">Loading chapters...</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="attemptSelect"
-                                class="block mb-2 text-sm font-semibold text-[var(--text-main)]">📋 Select
-                                Attempt</label>
-                            <select id="attemptSelect"
-                                class="bg-[var(--bg-light)] border border-[var(--border)] text-[var(--text-main)] text-sm rounded-xl focus:ring-[var(--primary)] focus:border-[var(--primary)] block w-full p-4"
-                                onchange="showAttemptDetails()">
+                            <label for="attemptSelect">📋 Select Attempt</label>
+                            <select id="attemptSelect" onchange="showAttemptDetails()">
                                 <option value="">Select an attempt...</option>
                             </select>
                         </div>
                     </form>
                 </div>
 
-                <div id="detailedResult"
-                    class="hidden p-8 bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl shadow-lg backdrop-blur-md">
-                    <div class="flex items-center justify-between mb-8">
-                        <div class="flex items-center gap-3">
-                            <div class="w-1.5 h-6 bg-[var(--primary)] rounded-full"></div>
-                            <h3 class="text-xl font-bold text-[var(--text-main)]">Result Summary</h3>
-                        </div>
+                <!-- Detailed Result View -->
+                <div id="detailedResult" class="glass-card" style="display: none;">
+                    <div class="card-header">
+                        <h3>Result Summary</h3>
                         <span id="resultBadge" class="result-badge"></span>
                     </div>
 
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-10">
-                        <div class="p-4 bg-white/30 border border-white/20 rounded-2xl text-center shadow-sm">
-                            <div class="text-xl font-black text-[var(--primary)]" id="totalScoreDisplay">0/0</div>
-                            <div class="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mt-1">
-                                Score</div>
+                    <!-- KPI Cards for Results -->
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="totalScoreDisplay">0/0</div>
+                            <div class="metric-label">Total Score</div>
                         </div>
-                        <div class="p-4 bg-white/30 border border-white/20 rounded-2xl text-center shadow-sm">
-                            <div class="text-xl font-black text-green-500" id="correctDisplay">0</div>
-                            <div class="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mt-1">
-                                Correct</div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="correctDisplay">0</div>
+                            <div class="metric-label">Correct Answers</div>
                         </div>
-                        <div class="p-4 bg-white/30 border border-white/20 rounded-2xl text-center shadow-sm">
-                            <div class="text-xl font-black text-red-500" id="incorrectDisplay">0</div>
-                            <div class="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mt-1">
-                                Wrong</div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="incorrectDisplay">0</div>
+                            <div class="metric-label">Incorrect Answers</div>
                         </div>
-                        <div class="p-4 bg-white/30 border border-white/20 rounded-2xl text-center shadow-sm">
-                            <div class="text-xl font-black text-[var(--secondary)]" id="historyPercentageDisplay">0%
-                            </div>
-                            <div class="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mt-1">
-                                Percent</div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="historyPercentageDisplay">0%</div>
+                            <div class="metric-label">Percentage</div>
                         </div>
-                        <div class="p-4 bg-white/30 border border-white/20 rounded-2xl text-center shadow-sm">
-                            <div class="text-xl font-black text-orange-500" id="timeDisplay">0s</div>
-                            <div class="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mt-1">
-                                Time</div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="timeDisplay">0s</div>
+                            <div class="metric-label">Time Taken</div>
                         </div>
-                        <div class="p-4 bg-white/30 border border-white/20 rounded-2xl text-center shadow-sm">
-                            <div class="text-xl font-black text-purple-500" id="gradeDisplay">-</div>
-                            <div class="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mt-1">
-                                Grade</div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="gradeDisplay">-</div>
+                            <div class="metric-label">Grade</div>
                         </div>
                     </div>
 
-                    <div class="mt-10">
-                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                            <h4 class="text-xl font-bold text-[var(--text-main)]">📋 Question-wise Review</h4>
-                            <div class="inline-flex rounded-xl shadow-sm bg-gray-100/50 p-1">
-                                <button type="button"
-                                    class="filter-chip active px-5 py-2 text-sm font-bold rounded-lg transition-all"
-                                    data-filter="all" onclick="setReviewFilter('all', 'questionReview')">All</button>
-                                <button type="button"
-                                    class="filter-chip px-5 py-2 text-sm font-bold rounded-lg transition-all"
-                                    data-filter="incorrect"
+                    <!-- Question-wise Review -->
+                    <div style="margin-top: 2.5rem;">
+                        <div class="filter-container">
+                            <h4 style="font-weight: 700; margin: 0; font-size: 1.2rem;">📋 Question-wise Review</h4>
+                            <div class="filter-group">
+                                <button class="filter-chip active" data-filter="all"
+                                    onclick="setReviewFilter('all', 'questionReview')">All</button>
+                                <button class="filter-chip" data-filter="incorrect"
                                     onclick="setReviewFilter('incorrect', 'questionReview')">Wrong Only</button>
-                                <button type="button"
-                                    class="filter-chip px-5 py-2 text-sm font-bold rounded-lg transition-all"
-                                    data-filter="correct"
+                                <button class="filter-chip" data-filter="correct"
                                     onclick="setReviewFilter('correct', 'questionReview')">Correct</button>
                             </div>
                         </div>
-                        <div id="questionReview" class="question-review-grid transition-all duration-300"></div>
+                        <div id="questionReview" class="question-review-grid"></div>
                     </div>
 
-                    <button onclick="exportResults()"
-                        class="mt-10 w-full md:w-auto px-8 py-4 bg-[var(--primary)] text-white font-bold rounded-2xl shadow-lg hover:bg-[var(--primary-dark)] transition-all">
+                    <!-- Export Button -->
+                    <button onclick="exportResults()" class="btn btn-primary btn-lg" style="margin-top: 2rem;">
                         📥 Export to Excel
                     </button>
                 </div>
 
-                <div id="attemptHistory"
-                    class="hidden p-8 bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl shadow-lg backdrop-blur-md overflow-hidden">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-1.5 h-6 bg-purple-500 rounded-full"></div>
-                        <h3 class="text-xl font-bold text-[var(--text-main)]">Attempt History</h3>
+                <!-- Attempt History -->
+                <div id="attemptHistory" class="glass-card" style="display: none;">
+                    <div class="card-header">
+                        <h3>Attempt History</h3>
                     </div>
-                    <div class="overflow-x-auto rounded-xl border border-[var(--border)]">
-                        <table class="w-full text-sm text-left text-[var(--text-main)]">
-                            <thead class="text-xs uppercase bg-gray-50/50 text-[var(--text-muted)]">
-                                <tr>
-                                    <th class="px-6 py-4 font-bold border-b border-[var(--border)]">Attempt</th>
-                                    <th class="px-6 py-4 font-bold border-b border-[var(--border)]">Score</th>
-                                    <th class="px-6 py-4 font-bold border-b border-[var(--border)]">Percentage</th>
-                                    <th class="px-6 py-4 font-bold border-b border-[var(--border)]">Grade</th>
-                                    <th class="px-6 py-4 font-bold border-b border-[var(--border)]">Time Taken</th>
-                                    <th class="px-6 py-4 font-bold border-b border-[var(--border)]">Date</th>
-                                    <th class="px-6 py-4 font-bold border-b border-[var(--border)] text-right">Action
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="attemptHistoryBody" class="divide-y divide-[var(--border)]"></tbody>
-                        </table>
-                    </div>
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Attempt</th>
+                                <th>Score</th>
+                                <th>Percentage</th>
+                                <th>Grade</th>
+                                <th>Time Taken</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attemptHistoryBody"></tbody>
+                    </table>
                 </div>
             </div>
         </section>
 
         <!-- Analytics Page -->
-        <section id="analytics" class="page hidden animate-fade-in">
-            <div
-                class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#8b5cf6] to-[#a855f7] p-8 md:p-12 mb-8 text-white shadow-xl">
-                <div class="relative z-10 max-w-2xl">
-                    <span
-                        class="inline-block px-4 py-1.5 mb-4 text-xs font-bold tracking-wider uppercase bg-white/20 backdrop-blur-md rounded-full">📈
-                        Performance Data</span>
-                    <h2 class="text-4xl md:text-5xl font-extrabold mb-4 font-['Plus_Jakarta_Sans']">Analytics & Insights
-                    </h2>
-                    <p class="text-lg opacity-90 font-medium leading-relaxed">Analyze your performance across multiple
-                        attempts and chapters.</p>
+        <section id="analytics" class="page">
+            <div class="hero-section">
+                <div class="hero-content" style="background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);">
+                    <span class="hero-badge">📈 Performance Data</span>
+                    <h2>Analytics & Insights</h2>
+                    <p>Analyze your performance across multiple attempts and chapters.</p>
                 </div>
-                <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
             </div>
 
-            <div class="grid gap-8">
-                <div
-                    class="p-8 bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl shadow-lg backdrop-blur-md">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-1.5 h-6 bg-indigo-500 rounded-full"></div>
-                        <h3 class="text-xl font-bold text-[var(--text-main)]">Filters & Options</h3>
+            <div class="page-content">
+                <!-- Filter Section -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3>Filters & Options</h3>
                     </div>
-                    <form class="space-y-6">
-                        <div class="grid md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="analyticsChapterFilter"
-                                    class="block mb-2 text-sm font-semibold text-[var(--text-main)]">📚 Filter by
-                                    Chapter</label>
-                                <select id="analyticsChapterFilter"
-                                    class="bg-[var(--bg-light)] border border-[var(--border)] text-[var(--text-main)] text-sm rounded-xl focus:ring-[var(--primary)] focus:border-[var(--primary)] block w-full p-4"
-                                    onchange="loadAnalyticsWithFilter()">
+                    <form class="exam-form">
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label for="analyticsChapterFilter">📚 Filter by Chapter</label>
+                                <select id="analyticsChapterFilter" onchange="loadAnalyticsWithFilter()">
                                     <option value="">All Chapters</option>
                                 </select>
                             </div>
-                            <div>
-                                <label for="analyticsDateFilter"
-                                    class="block mb-2 text-sm font-semibold text-[var(--text-main)]">📅 Date
-                                    Range</label>
-                                <select id="analyticsDateFilter"
-                                    class="bg-[var(--bg-light)] border border-[var(--border)] text-[var(--text-main)] text-sm rounded-xl focus:ring-[var(--primary)] focus:border-[var(--primary)] block w-full p-4"
-                                    onchange="loadAnalyticsWithFilter()">
+                            <div class="form-group">
+                                <label for="analyticsDateFilter">📅 Date Range</label>
+                                <select id="analyticsDateFilter" onchange="loadAnalyticsWithFilter()">
                                     <option value="all">All Time</option>
                                     <option value="7">Last 7 Days</option>
                                     <option value="30">Last 30 Days</option>
@@ -431,136 +279,111 @@
                                 </select>
                             </div>
                         </div>
-                        <button type="button" onclick="downloadAnalyticsReport()"
-                            class="w-full md:w-auto px-8 py-4 bg-[var(--primary)] text-white font-bold rounded-2xl shadow-lg hover:bg-[var(--primary-dark)] transition-all">
+                        <button type="button" onclick="downloadAnalyticsReport()" class="btn btn-primary">
                             📥 Download Report
                         </button>
                     </form>
                 </div>
 
-                <div
-                    class="p-8 bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl shadow-lg backdrop-blur-md">
-                    <div class="flex items-center gap-3 mb-8">
-                        <div class="w-1.5 h-6 bg-green-500 rounded-full"></div>
-                        <h3 class="text-xl font-bold text-[var(--text-main)]">Key Performance Indicators</h3>
+                <!-- Key Performance Indicators -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3>Key Performance Indicators</h3>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div class="p-6 bg-white/30 border border-white/20 rounded-2xl shadow-sm">
-                            <div class="text-3xl font-black text-[var(--primary)] mb-1" id="totalAttempts">0</div>
-                            <div class="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">Total
-                                Attempts</div>
-                            <div class="text-[10px] mt-2 font-bold" id="totalAttemptsChange"></div>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="totalAttempts">0</div>
+                            <div class="metric-label">Total Attempts</div>
+                            <div class="metric-sub" id="totalAttemptsChange"></div>
                         </div>
-                        <div class="p-6 bg-white/30 border border-white/20 rounded-2xl shadow-sm">
-                            <div class="text-3xl font-black text-amber-500 mb-1" id="avgScore">0</div>
-                            <div class="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">Average
-                                Score</div>
-                            <div class="text-[10px] mt-2 font-bold" id="avgScoreChange"></div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="avgScore">0</div>
+                            <div class="metric-label">Average Score</div>
+                            <div class="metric-sub" id="avgScoreChange"></div>
                         </div>
-                        <div class="p-6 bg-white/30 border border-white/20 rounded-2xl shadow-sm">
-                            <div class="text-3xl font-black text-emerald-500 mb-1" id="bestScore">0</div>
-                            <div class="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">Best Score
-                            </div>
-                            <div class="text-[10px] mt-2 font-bold" id="bestScoreChange"></div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="bestScore">0</div>
+                            <div class="metric-label">Best Score</div>
+                            <div class="metric-sub" id="bestScoreChange"></div>
                         </div>
-                        <div class="p-6 bg-white/30 border border-white/20 rounded-2xl shadow-sm">
-                            <div class="text-3xl font-black text-blue-500 mb-1" id="avgAccuracy">0%</div>
-                            <div class="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">Avg
-                                Accuracy</div>
-                            <div class="text-[10px] mt-2 font-bold" id="accuracyChange"></div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="avgAccuracy">0%</div>
+                            <div class="metric-label">Average Accuracy</div>
+                            <div class="metric-sub" id="accuracyChange"></div>
                         </div>
                     </div>
                 </div>
 
-                <div
-                    class="p-8 bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl shadow-lg backdrop-blur-md">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-1.5 h-6 bg-[var(--primary)] rounded-full"></div>
-                        <h3 class="text-xl font-bold text-[var(--text-main)]">📈 Performance Trend</h3>
+                <!-- Performance Trend Chart -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3>📈 Performance Trend</h3>
                     </div>
-                    <div class="h-64 sm:h-96">
-                        <canvas id="performanceChart"></canvas>
-                    </div>
+                    <canvas id="performanceChart" height="100"></canvas>
                 </div>
 
-                <div
-                    class="p-8 bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl shadow-lg backdrop-blur-md overflow-hidden">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
-                        <h3 class="text-xl font-bold text-[var(--text-main)]">📊 Chapter-wise Performance</h3>
+                <!-- Category-wise Breakdown -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3>📊 Chapter-wise Performance</h3>
                     </div>
-                    <div class="overflow-x-auto rounded-xl border border-[var(--border)]">
-                        <table class="w-full text-sm text-left text-[var(--text-main)]">
-                            <thead class="text-xs uppercase bg-gray-50/50 text-[var(--text-muted)]">
-                                <tr>
-                                    <th class="px-6 py-4 font-bold border-b border-[var(--border)]">Chapter</th>
-                                    <th class="px-6 py-4 font-bold border-b border-[var(--border)]">Attempts</th>
-                                    <th class="px-6 py-4 font-bold border-b border-[var(--border)]">Best Score</th>
-                                    <th class="px-6 py-4 font-bold border-b border-[var(--border)]">Avg Score</th>
-                                    <th class="px-6 py-4 font-bold border-b border-[var(--border)] text-right">Accuracy
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="chapterStatsBody" class="divide-y divide-[var(--border)]"></tbody>
-                        </table>
-                    </div>
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>Chapter</th>
+                                <th>Attempts</th>
+                                <th>Best Score</th>
+                                <th>Average Score</th>
+                                <th>Accuracy</th>
+                                <th>Progress</th>
+                            </tr>
+                        </thead>
+                        <tbody id="chapterStatsBody"></tbody>
+                    </table>
                 </div>
 
-                <div
-                    class="p-8 bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl shadow-lg backdrop-blur-md">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-1.5 h-6 bg-orange-500 rounded-full"></div>
-                        <h3 class="text-xl font-bold text-[var(--text-main)]">⏱️ Time vs Score Analysis</h3>
+                <!-- Time vs Score Analysis -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3>⏱️ Time vs Score Analysis</h3>
                     </div>
-                    <div class="h-64 sm:h-96">
-                        <canvas id="timeVsScoreChart"></canvas>
-                    </div>
+                    <canvas id="timeVsScoreChart" height="100"></canvas>
                 </div>
 
-                <div
-                    class="p-8 bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl shadow-lg backdrop-blur-md overflow-hidden">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-1.5 h-6 bg-blue-600 rounded-full"></div>
-                        <h3 class="text-xl font-bold text-[var(--text-main)]">📋 Detailed Attempt Statistics</h3>
+                <!-- Detailed Statistics -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3>📋 Detailed Attempt Statistics</h3>
                     </div>
-                    <div class="overflow-x-auto rounded-xl border border-[var(--border)]">
-                        <table class="w-full text-sm text-left text-[var(--text-main)]">
-                            <thead class="text-xs uppercase bg-gray-50/50 text-[var(--text-muted)]">
-                                <tr>
-                                    <th class="px-6 py-4 font-bold border-b border-[var(--border)]">Date</th>
-                                    <th class="px-6 py-4 font-bold border-b border-[var(--border)]">Chapter</th>
-                                    <th class="px-6 py-4 font-bold border-b border-[var(--border)] text-center">Score
-                                    </th>
-                                    <th class="px-6 py-4 font-bold border-b border-[var(--border)] text-center">Grade
-                                    </th>
-                                    <th class="px-6 py-4 font-bold border-b border-[var(--border)] text-right">Time</th>
-                                </tr>
-                            </thead>
-                            <tbody id="detailedStatsBody" class="divide-y divide-[var(--border)]"></tbody>
-                        </table>
-                    </div>
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Chapter</th>
+                                <th>Score</th>
+                                <th>Grade</th>
+                                <th>Accuracy</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailedStatsBody"></tbody>
+                    </table>
                 </div>
             </div>
         </section>
     </main>
 
     <!-- Footer -->
-    <footer class="footer mt-auto py-12 bg-white/50 border-t border-[var(--border)]">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <p class="text-[var(--text-muted)] font-semibold mb-2">© 2026 OMR Digital Suite. Built with modern design
-                principles.</p>
-            <p class="text-xs text-[var(--text-muted)] uppercase tracking-widest font-bold opacity-60">Fast • Responsive
-                • Beautiful</p>
+    <footer class="footer">
+        <div class="footer-content">
+            <p>© 2026 OMR Digital Suite. Built with modern design principles.</p>
+            <p>Fast • Responsive • Beautiful</p>
         </div>
     </footer>
 
     <div id="alertOverlay" class="alert-overlay"></div>
-
-    <!-- Flowbite JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
-
-</html>
 
 </html>
