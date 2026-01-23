@@ -352,6 +352,149 @@ function displayResults(result, submittedAnswers) {
     document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth' });
 }
 
+// ==================== Export Functions ====================
+async function exportExamResult() {
+    const studentName = document.getElementById('studentName').value;
+    const chapterId = document.getElementById('chapterSelect').value;
+    const score = document.getElementById('immediateScoreDisplay').textContent.split('/')[0];
+    const totalQuestions = document.getElementById('immediateScoreDisplay').textContent.split('/')[1];
+    const percentage = parseFloat(document.getElementById('immediatePercentageDisplay').textContent);
+    const attemptNumber = parseInt(document.getElementById('attemptDisplay').textContent);
+    
+    if (!appState.lastExamAttempt) {
+        showAlert('No exam result to export', 'warning');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/export/exam', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                student_name: studentName,
+                chapter_name: appState.currentChapter.chapter_name,
+                score: parseInt(score),
+                total_questions: parseInt(totalQuestions),
+                percentage: percentage,
+                attempt_number: attemptNumber,
+                submitted_answers: appState.lastExamAttempt.submitted_answers,
+                correct_answers: appState.lastExamAttempt.correct_answers,
+                submitted_at: new Date().toLocaleString()
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Export failed');
+        }
+        
+        // Get the blob and download
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `OMR_Report_${studentName}_${appState.currentChapter.chapter_name}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        showAlert('✅ Exam report exported successfully!', 'success');
+    } catch (error) {
+        console.error('Error exporting exam:', error);
+        showAlert('Failed to export exam report. Please try again.', 'error');
+    }
+}
+
+async function exportChapterResults(chapterName) {
+    if (!chapterName) {
+        showAlert('Please select a chapter', 'warning');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/export/chapter-results', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                chapter_name: chapterName
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Export failed');
+        }
+        
+        // Get the blob and download
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Chapter_Results_${chapterName}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        showAlert('✅ Chapter results exported successfully!', 'success');
+    } catch (error) {
+        console.error('Error exporting chapter results:', error);
+        showAlert('Failed to export chapter results. Please try again.', 'error');
+    }
+}
+
+async function exportHistoryResult() {
+    if (!appState.historyActiveAttempt) {
+        showAlert('Please select an attempt to export', 'warning');
+        return;
+    }
+    
+    const attempt = appState.historyActiveAttempt;
+    
+    try {
+        const response = await fetch('/api/export/exam', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                student_name: attempt.student_name,
+                chapter_name: attempt.chapter_name,
+                score: attempt.score,
+                total_questions: attempt.total_questions,
+                percentage: (attempt.score / attempt.total_questions * 100),
+                attempt_number: attempt.attempt_number,
+                submitted_answers: JSON.parse(attempt.submitted_answers || '[]'),
+                correct_answers: JSON.parse(attempt.correct_answers || '[]'),
+                submitted_at: attempt.submitted_at
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Export failed');
+        }
+        
+        // Get the blob and download
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `OMR_Report_${attempt.student_name}_${attempt.chapter_name}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        showAlert('✅ Result exported successfully!', 'success');
+    } catch (error) {
+        console.error('Error exporting result:', error);
+        showAlert('Failed to export result. Please try again.', 'error');
+    }
+}
+
 // Simple confetti effect
 function confetti() {
     const colors = ['#6366f1', '#0891b2', '#10b981', '#f59e0b', '#ef4444'];

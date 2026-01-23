@@ -144,9 +144,14 @@
                         <div id="immediateQuestionReview" class="question-review-grid"></div>
                     </div>
 
-                    <button onclick="showPage('exam')" class="btn btn-secondary btn-lg">
-                        ← Take Another Test
-                    </button>
+                    <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                        <button onclick="exportExamResult()" class="btn btn-success btn-lg" style="flex: 1;">
+                            📥 Export as Excel
+                        </button>
+                        <button onclick="showPage('exam')" class="btn btn-secondary btn-lg" style="flex: 1;">
+                            ← Take Another Test
+                        </button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -234,9 +239,14 @@
                     </div>
 
                     <!-- Export Button -->
-                    <button onclick="exportResults()" class="btn btn-primary btn-lg" style="margin-top: 2rem;">
-                        📥 Export to Excel
-                    </button>
+                    <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                        <button onclick="exportHistoryResult()" class="btn btn-success btn-lg" style="flex: 1;">
+                            📥 Export This Result
+                        </button>
+                        <button onclick="exportChapterResults(document.getElementById('resultsChapterSelect').value)" class="btn btn-info btn-lg" style="flex: 1;">
+                            📊 Export All Results
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Attempt History -->

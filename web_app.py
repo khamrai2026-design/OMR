@@ -2,12 +2,18 @@
 Modern OMR Digital Suite - Flask Web Application
 A sleek, modern web-based OMR sheet evaluation system
 """
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_file
 from datetime import datetime
 import sqlite3
 import json
 import os
+from io import BytesIO
 from werkzeug.serving import run_simple
+
+try:
+    from utils.excel_exporter import ExcelExporter
+except ImportError:
+    ExcelExporter = None
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 
@@ -260,6 +266,135 @@ def get_analytics():
         'top_students': [dict(student) for student in top_students],
         'all_attempts': [dict(attempt) for attempt in all_attempts]
     })
+
+@app.route('/api/export/exam', methods=['POST'])
+def export_exam():
+    """Export exam result as Excel"""
+    if not ExcelExporter:
+        return jsonify({'success': False, 'message': 'Excel export not available'}), 400
+    
+    data = request.json
+    student_name = data.get('student_name')
+    chapter_name = data.get('chapter_name')
+    score = data.get('score')
+    total_questions = data.get('total_questions')
+    percentage = data.get('percentage')
+    attempt_number = data.get('attempt_number')
+    submitted_answers = data.get('submitted_answers', [])
+    correct_answers = data.get('correct_answers', [])
+    submitted_at = data.get('submitted_at')
+    
+    try:
+        excel_data = ExcelExporter.create_exam_report(
+            student_name=student_name,
+            chapter_name=chapter_name,
+            score=score,
+            total_questions=total_questions,
+            percentage=percentage,
+            attempt_number=attempt_number,
+            submitted_answers=submitted_answers,
+            correct_answers=correct_answers,
+            submitted_at=submitted_at
+        )
+        
+        # Create filename
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"OMR_Report_{student_name}_{chapter_name}_{timestamp}.xlsx"
+        
+        return send_file(
+            BytesIO(excel_data),
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=filename
+        )
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/export/chapter-results', methods=['POST'])
+def export_chapter_results():
+    """Export all results for a chapter as Excel"""
+    data = request.json
+    chapter_name = data.get('chapter_name')
+    
+    if not chapter_name:
+        return jsonify({'success': False, 'message': 'Chapter name required'}), 400
+    
+    conn = get_db()
+    
+    # Get all attempts for this chapter
+    attempts = conn.execute('''
+        SELECT a.*, c.chapter_name, c.correct_answers, c.num_questions
+        FROM attempts a
+        JOIN chapters c ON a.chapter_id = c.id
+        WHERE c.chapter_name = ?
+        ORDER BY a.submitted_at DESC
+    ''', (chapter_name,)).fetchall()
+    
+    if not attempts:
+        return jsonify({'success': False, 'message': 'No results found'}), 404
+    
+    try:
+        # Create Excel with multiple sheets (one per attempt or summary sheet)
+        output = BytesIO()
+        import pandas as pd
+        from xlsxwriter import Workbook
+        
+        workbook = Workbook(output)
+        summary_sheet = workbook.add_worksheet('Summary')
+        
+        # Add summary data
+        header_format = workbook.add_format({
+            'bold': True,
+            'bg_color': '#6366f1',
+            'font_color': 'white',
+            'border': 1
+        })
+        
+        summary_sheet.write('A1', 'Chapter Name', header_format)
+        summary_sheet.write('B1', 'Student Name', header_format)
+        summary_sheet.write('C1', 'Attempt', header_format)
+        summary_sheet.write('D1', 'Score', header_format)
+        summary_sheet.write('E1', 'Percentage', header_format)
+        summary_sheet.write('F1', 'Submitted At', header_format)
+        
+        row = 1
+        for attempt in attempts:
+            correct_answers = json.loads(attempt['correct_answers'])
+            num_questions = attempt['num_questions']
+            percentage = (attempt['score'] / num_questions * 100) if num_questions > 0 else 0
+            
+            summary_sheet.write(row, 0, attempt['chapter_name'])
+            summary_sheet.write(row, 1, attempt['student_name'])
+            summary_sheet.write(row, 2, attempt['attempt_number'])
+            summary_sheet.write(row, 3, f"{attempt['score']}/{num_questions}")
+            summary_sheet.write(row, 4, f"{percentage:.2f}%")
+            summary_sheet.write(row, 5, attempt['submitted_at'])
+            row += 1
+        
+        # Set column widths
+        summary_sheet.set_column('A:A', 20)
+        summary_sheet.set_column('B:B', 20)
+        summary_sheet.set_column('C:C', 12)
+        summary_sheet.set_column('D:D', 12)
+        summary_sheet.set_column('E:E', 15)
+        summary_sheet.set_column('F:F', 25)
+        
+        workbook.close()
+        output.seek(0)
+        
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"Chapter_Results_{chapter_name}_{timestamp}.xlsx"
+        
+        return send_file(
+            output,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=filename
+        )
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        conn.close()
 
 if __name__ == '__main__':
     init_db()
