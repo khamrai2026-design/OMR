@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OMR Digital Suite - Modern Exam Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <!-- Chart.js for analytics visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="nav-brand">
+                <span class="brand-icon">📝</span>
+                <h1>OMR Digital Suite</h1>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#" onclick="showPage('exam')" class="nav-link active">📝 Exam</a></li>
+                <li><a href="#" onclick="showPage('results')" class="nav-link">📊 Results</a></li>
+                <li><a href="#" onclick="showPage('analytics')" class="nav-link">📈 Analytics</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-container">
+        <!-- Exam Page -->
+        <section id="exam" class="page active">
+            <div class="hero-section">
+                <div class="hero-content">
+                    <span class="hero-badge">🎯 Smart Examination</span>
+                    <h2>Take a Test</h2>
+                    <p>Test your knowledge and track your progress with instant results and detailed analytics.</p>
+                </div>
+            </div>
+
+            <div class="page-content">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3>Student Information</h3>
+                    </div>
+                    <form id="examForm" class="exam-form">
+                        <div class="form-group">
+                            <label for="studentName">✍️ Student Name</label>
+                            <input type="text" id="studentName" name="studentName" placeholder="Enter your full name"
+                                required value="Arin Khamrai">
+                        </div>
+                        <div class="form-group">
+                            <label for="chapterSelect">📚 Select Chapter</label>
+                            <select id="chapterSelect" name="chapter" required onchange="loadChapterDetails()">
+                                <option value="">Loading chapters...</option>
+                            </select>
+                        </div>
+                        <div id="attemptInfo" class="attempt-info" style="display: none;"></div>
+                    </form>
+                </div>
+
+                <div id="answerSheet" class="glass-card" style="display: none;">
+                    <div class="card-header">
+                        <h3>Answer Sheet</h3>
+                        <span id="questionInfo" class="question-info"></span>
+                    </div>
+                    <div id="questionsContainer" class="questions-grid"></div>
+                    <button onclick="submitExam()" class="btn btn-primary btn-lg">
+                        🚀 Submit Examination
+                    </button>
+                </div>
+
+                <div id="resultCard" class="glass-card" style="display: none;">
+                    <div class="card-header">
+                        <h3>Performance Summary</h3>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="immediateScoreDisplay">0/0</div>
+                            <div class="metric-label">Total Score</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="immediatePercentageDisplay">0%</div>
+                            <div class="metric-label">Percentage</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="attemptDisplay">1</div>
+                            <div class="metric-label">Attempt No.</div>
+                        </div>
+                    </div>
+
+                    <div class="answer-comparison">
+                        <h4>Answer Comparison</h4>
+                        <table class="results-table">
+                            <thead>
+                                <tr>
+                                    <th>Q.No</th>
+                                    <th>Your Answer</th>
+                                    <th>Correct Answer</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="answerTableBody"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Question-wise Review Grid -->
+                    <div style="margin-top: 2.5rem; border-top: 1px solid var(--border); padding-top: 2.5rem;">
+                        <div class="filter-container">
+                            <h4 style="font-weight: 700; margin: 0; font-size: 1.2rem;">📋 Question-wise Review Grid
+                            </h4>
+                            <div class="filter-group">
+                                <button class="filter-chip active" data-filter="all"
+                                    onclick="setReviewFilter('all', 'immediateQuestionReview')">All</button>
+                                <button class="filter-chip" data-filter="incorrect"
+                                    onclick="setReviewFilter('incorrect', 'immediateQuestionReview')">Wrong
+                                    Only</button>
+                                <button class="filter-chip" data-filter="correct"
+                                    onclick="setReviewFilter('correct', 'immediateQuestionReview')">Correct</button>
+                            </div>
+                        </div>
+                        <div id="immediateQuestionReview" class="question-review-grid"></div>
+                    </div>
+
+                    <button onclick="showPage('exam')" class="btn btn-secondary btn-lg">
+                        ← Take Another Test
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Page -->
+        <section id="results" class="page">
+            <div class="hero-section">
+                <div class="hero-content" style="background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);">
+                    <span class="hero-badge">📊 Result Analysis</span>
+                    <h2>View Results</h2>
+                    <p>Review your test attempts and detailed performance metrics.</p>
+                </div>
+            </div>
+
+            <div class="page-content">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3>Select Attempt</h3>
+                    </div>
+                    <form class="exam-form">
+                        <div class="form-group">
+                            <label for="resultsChapterSelect">📚 Select Chapter</label>
+                            <select id="resultsChapterSelect" onchange="loadResults()">
+                                <option value="">Loading chapters...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="attemptSelect">📋 Select Attempt</label>
+                            <select id="attemptSelect" onchange="showAttemptDetails()">
+                                <option value="">Select an attempt...</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Detailed Result View -->
+                <div id="detailedResult" class="glass-card" style="display: none;">
+                    <div class="card-header">
+                        <h3>Result Summary</h3>
+                        <span id="resultBadge" class="result-badge"></span>
+                    </div>
+
+                    <!-- KPI Cards for Results -->
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="totalScoreDisplay">0/0</div>
+                            <div class="metric-label">Total Score</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="correctDisplay">0</div>
+                            <div class="metric-label">Correct Answers</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="incorrectDisplay">0</div>
+                            <div class="metric-label">Incorrect Answers</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="historyPercentageDisplay">0%</div>
+                            <div class="metric-label">Percentage</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="timeDisplay">0s</div>
+                            <div class="metric-label">Time Taken</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="gradeDisplay">-</div>
+                            <div class="metric-label">Grade</div>
+                        </div>
+                    </div>
+
+                    <!-- Question-wise Review -->
+                    <div style="margin-top: 2.5rem;">
+                        <div class="filter-container">
+                            <h4 style="font-weight: 700; margin: 0; font-size: 1.2rem;">📋 Question-wise Review</h4>
+                            <div class="filter-group">
+                                <button class="filter-chip active" data-filter="all"
+                                    onclick="setReviewFilter('all', 'questionReview')">All</button>
+                                <button class="filter-chip" data-filter="incorrect"
+                                    onclick="setReviewFilter('incorrect', 'questionReview')">Wrong Only</button>
+                                <button class="filter-chip" data-filter="correct"
+                                    onclick="setReviewFilter('correct', 'questionReview')">Correct</button>
+                            </div>
+                        </div>
+                        <div id="questionReview" class="question-review-grid"></div>
+                    </div>
+
+                    <!-- Export Button -->
+                    <button onclick="exportResults()" class="btn btn-primary btn-lg" style="margin-top: 2rem;">
+                        📥 Export to Excel
+                    </button>
+                </div>
+
+                <!-- Attempt History -->
+                <div id="attemptHistory" class="glass-card" style="display: none;">
+                    <div class="card-header">
+                        <h3>Attempt History</h3>
+                    </div>
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Attempt</th>
+                                <th>Score</th>
+                                <th>Percentage</th>
+                                <th>Grade</th>
+                                <th>Time Taken</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attemptHistoryBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Analytics Page -->
+        <section id="analytics" class="page">
+            <div class="hero-section">
+                <div class="hero-content" style="background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);">
+                    <span class="hero-badge">📈 Performance Data</span>
+                    <h2>Analytics & Insights</h2>
+                    <p>Analyze your performance across multiple attempts and chapters.</p>
+                </div>
+            </div>
+
+            <div class="page-content">
+                <!-- Filter Section -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3>Filters & Options</h3>
+                    </div>
+                    <form class="exam-form">
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label for="analyticsChapterFilter">📚 Filter by Chapter</label>
+                                <select id="analyticsChapterFilter" onchange="loadAnalyticsWithFilter()">
+                                    <option value="">All Chapters</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="analyticsDateFilter">📅 Date Range</label>
+                                <select id="analyticsDateFilter" onchange="loadAnalyticsWithFilter()">
+                                    <option value="all">All Time</option>
+                                    <option value="7">Last 7 Days</option>
+                                    <option value="30">Last 30 Days</option>
+                                    <option value="90">Last 90 Days</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="button" onclick="downloadAnalyticsReport()" class="btn btn-primary">
+                            📥 Download Report
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Key Performance Indicators -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3>Key Performance Indicators</h3>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="totalAttempts">0</div>
+                            <div class="metric-label">Total Attempts</div>
+                            <div class="metric-sub" id="totalAttemptsChange"></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="avgScore">0</div>
+                            <div class="metric-label">Average Score</div>
+                            <div class="metric-sub" id="avgScoreChange"></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="bestScore">0</div>
+                            <div class="metric-label">Best Score</div>
+                            <div class="metric-sub" id="bestScoreChange"></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="avgAccuracy">0%</div>
+                            <div class="metric-label">Average Accuracy</div>
+                            <div class="metric-sub" id="accuracyChange"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Trend Chart -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3>📈 Performance Trend</h3>
+                    </div>
+                    <canvas id="performanceChart" height="100"></canvas>
+                </div>
+
+                <!-- Category-wise Breakdown -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3>📊 Chapter-wise Performance</h3>
+                    </div>
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>Chapter</th>
+                                <th>Attempts</th>
+                                <th>Best Score</th>
+                                <th>Average Score</th>
+                                <th>Accuracy</th>
+                                <th>Progress</th>
+                            </tr>
+                        </thead>
+                        <tbody id="chapterStatsBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Time vs Score Analysis -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3>⏱️ Time vs Score Analysis</h3>
+                    </div>
+                    <canvas id="timeVsScoreChart" height="100"></canvas>
+                </div>
+
+                <!-- Detailed Statistics -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3>📋 Detailed Attempt Statistics</h3>
+                    </div>
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Chapter</th>
+                                <th>Score</th>
+                                <th>Grade</th>
+                                <th>Accuracy</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailedStatsBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>© 2026 OMR Digital Suite. Built with modern design principles.</p>
+            <p>Fast • Responsive • Beautiful</p>
+        </div>
+    </footer>
+
+    <div id="alertOverlay" class="alert-overlay"></div>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+
+</html>

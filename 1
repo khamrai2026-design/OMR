@@ -1,0 +1,13 @@
+SELECT c.id,
+       chapter_id,
+       chapter_name student_name,
+       submitted_answers,
+       score,
+       total_questions,
+       attempt_number,
+       submitted_at,
+       time_taken
+  FROM attempts a
+       left JOIN
+       chapters c ON a.chapter_id = c.id
+ ORDER BY chapter_id;

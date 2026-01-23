@@ -1,19 +1,21 @@
 {
-    "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Streamlit",
+            "name": "Python Debugger: Flask",
             "type": "debugpy",
             "request": "launch",
-            "module": "streamlit",
+            "module": "flask",
+            "env": {
+                "FLASK_APP": "web_app.py",
+                "FLASK_DEBUG": "1"
+            },
             "args": [
                 "run",
-                "${file}",
-                "--server.port",
-                "8501"
+                "--no-debugger",
+                "--no-reload"
             ],
             "jinja": true,
-            "justMyCode": true
+            "autoStartBrowser": false
         }
     ]
 }
