@@ -10,10 +10,26 @@ let appState = {
 
 // Initialize app on load
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
     loadChapters();
     loadResultsChapters();
     setupNavigation();
 });
+
+// ==================== Theme Management ====================
+function initTheme() {
+    const savedTheme = localStorage.getItem('omr-theme') || 'default';
+    changeTheme(savedTheme);
+
+    // Update selector if it exists
+    const selector = document.getElementById('themeSelector');
+    if (selector) selector.value = savedTheme;
+}
+
+function changeTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('omr-theme', theme);
+}
 
 // ==================== Custom Alerts ====================
 function showAlert(message, type = 'warning') {
