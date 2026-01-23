@@ -287,17 +287,36 @@ async function loadChapterDetails() {
         document.getElementById('answerSheet').style.display = 'block';
         document.getElementById('resultCard').style.display = 'none';
 
-        // Reset timer and record start time
-        stopTimer();
-        appState.timerSeconds = 0;
-        appState.examStartTime = new Date();
-        updateTimerDisplay();
+        // Check if resuming an existing attempt
+        const timerKey = getTimerKey();
+        const existingTimer = localStorage.getItem(timerKey);
+        
+        if (!existingTimer) {
+            // Fresh exam - reset timer and record start time
+            stopTimer();
+            appState.timerSeconds = 0;
+            appState.examStartTime = new Date();
+            updateTimerDisplay();
+        } else if (!appState.examStartTime) {
+            // Resuming exam - estimate start time from elapsed seconds
+            const now = new Date();
+            appState.examStartTime = new Date(now.getTime() - (appState.timerSeconds * 1000));
+        }
         
         // Render questions
         renderQuestions(chapter);
         
-        // Start timer
-        startTimer();
+        // Load saved answers (which also restores timer if it exists)
+        loadSavedAnswers();
+        
+        // Only start/resume timer if not already running
+        if (!appState.timerRunning) {
+            startTimer();
+        } else if (appState.timerPaused) {
+            // If it was paused, keep it paused
+            appState.timerPaused = true;
+            updateTimerButton();
+        }
 
     } catch (error) {
         console.error('Error loading chapter details:', error);
@@ -368,15 +387,31 @@ function getAttemptKey() {
     return `exam_attempt_${studentName}_${chapterId}`;
 }
 
+function getTimerKey() {
+    const studentName = document.getElementById('studentName').value;
+    const chapterId = document.getElementById('chapterSelect').value;
+    return `exam_timer_${studentName}_${chapterId}`;
+}
+
 function saveAttemptedAnswers() {
     const key = getAttemptKey();
     const savedData = {
         answers: appState.currentAnswers,
         timestamp: new Date().toISOString(),
         studentName: document.getElementById('studentName').value,
-        chapterId: document.getElementById('chapterSelect').value
+        chapterId: document.getElementById('chapterSelect').value,
+        elapsedSeconds: appState.timerSeconds
     };
     localStorage.setItem(key, JSON.stringify(savedData));
+    
+    // Save timer state separately
+    const timerKey = getTimerKey();
+    const timerData = {
+        elapsedSeconds: appState.timerSeconds,
+        isPaused: appState.timerPaused,
+        lastSavedAt: new Date().toISOString()
+    };
+    localStorage.setItem(timerKey, JSON.stringify(timerData));
     
     // Show save indicator (optional)
     showSaveIndicator();
@@ -385,6 +420,22 @@ function saveAttemptedAnswers() {
 function loadSavedAnswers() {
     const key = getAttemptKey();
     const savedData = localStorage.getItem(key);
+    const timerKey = getTimerKey();
+    const timerData = localStorage.getItem(timerKey);
+    
+    // Restore timer state first
+    if (timerData) {
+        try {
+            const timer = JSON.parse(timerData);
+            appState.timerSeconds = timer.elapsedSeconds;
+            appState.timerPaused = timer.isPaused;
+            updateTimerDisplay();
+            updateTimerButton();
+            console.log(`Restored timer: ${timer.elapsedSeconds} seconds, paused: ${timer.isPaused}`);
+        } catch (e) {
+            console.log('Could not restore timer state');
+        }
+    }
     
     if (savedData) {
         try {
@@ -414,7 +465,9 @@ function loadSavedAnswers() {
 
 function clearSavedAnswers() {
     const key = getAttemptKey();
+    const timerKey = getTimerKey();
     localStorage.removeItem(key);
+    localStorage.removeItem(timerKey);
 }
 
 function showSaveIndicator() {
