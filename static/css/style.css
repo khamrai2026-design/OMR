@@ -390,6 +390,65 @@ body {
     }
 }
 
+/* ==================== Timer Display ==================== */
+.timer-display {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%);
+    padding: 8px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.timer-value {
+    font-family: 'Courier New', monospace;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ef4444;
+    letter-spacing: 2px;
+    min-width: 100px;
+    text-align: center;
+}
+
+.timer-btn {
+    background: white;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.timer-btn:hover {
+    background: #ef4444;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.timer-btn.playing {
+    background: #ef4444;
+    color: white;
+}
+
+.timer-display.paused .timer-value {
+    color: #f59e0b;
+    animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
 .question-group {
     display: flex;
     flex-direction: column;

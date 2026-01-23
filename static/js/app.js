@@ -5,7 +5,11 @@ let appState = {
     currentAnswers: {},
     selectedAttempt: null,
     lastExamAttempt: null,
-    historyActiveAttempt: null
+    historyActiveAttempt: null,
+    timerRunning: false,
+    timerPaused: false,
+    timerSeconds: 0,
+    timerInterval: null
 };
 
 // Initialize app on load
@@ -61,6 +65,83 @@ function applyTheme(themeName) {
     const themeSelect = document.getElementById('themeSelect');
     if (themeSelect) {
         themeSelect.value = themeName;
+    }
+}
+
+// ==================== Timer Management ====================
+function startTimer() {
+    if (appState.timerRunning) return;
+    
+    appState.timerRunning = true;
+    appState.timerPaused = false;
+    updateTimerButton();
+    
+    appState.timerInterval = setInterval(() => {
+        if (!appState.timerPaused) {
+            appState.timerSeconds++;
+            updateTimerDisplay();
+        }
+    }, 1000);
+}
+
+function toggleTimer() {
+    if (!appState.timerRunning) {
+        startTimer();
+        return;
+    }
+    
+    appState.timerPaused = !appState.timerPaused;
+    updateTimerButton();
+}
+
+function stopTimer() {
+    if (appState.timerInterval) {
+        clearInterval(appState.timerInterval);
+        appState.timerInterval = null;
+    }
+    appState.timerRunning = false;
+    appState.timerPaused = false;
+}
+
+function updateTimerDisplay() {
+    const hours = Math.floor(appState.timerSeconds / 3600);
+    const minutes = Math.floor((appState.timerSeconds % 3600) / 60);
+    const seconds = appState.timerSeconds % 60;
+    
+    const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    document.getElementById('timerValue').textContent = timeString;
+}
+
+function updateTimerButton() {
+    const btn = document.getElementById('timerBtn');
+    if (!btn) return;
+    
+    if (appState.timerPaused) {
+        btn.textContent = '▶️ Resume';
+        btn.classList.remove('playing');
+        document.querySelector('.timer-display').classList.add('paused');
+    } else {
+        btn.textContent = '⏸️ Pause';
+        btn.classList.add('playing');
+        document.querySelector('.timer-display').classList.remove('paused');
+    }
+}
+
+function getTimeTaken() {
+    return appState.timerSeconds;
+}
+
+function formatTime(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+        return `${hours}h ${minutes}m ${secs}s`;
+    } else if (minutes > 0) {
+        return `${minutes}m ${secs}s`;
+    } else {
+        return `${secs}s`;
     }
 }
 
@@ -150,9 +231,32 @@ async function loadChapters() {
     }
 }
 
+function updateTakeExamButton() {
+    const chapterId = document.getElementById('chapterSelect').value;
+    const takeExamBtn = document.getElementById('takeExamBtn');
+    
+    if (chapterId) {
+        takeExamBtn.style.display = 'block';
+    } else {
+        takeExamBtn.style.display = 'none';
+    }
+}
+
+function initiateExam() {
+    const studentName = document.getElementById('studentName').value;
+    
+    if (!studentName) {
+        showAlert('Please enter your name before taking exam', 'warning');
+        return;
+    }
+    
+    loadChapterDetails();
+}
+
 async function loadChapterDetails() {
     const chapterId = document.getElementById('chapterSelect').value;
     const chapterName = document.getElementById('chapterSelect').options[document.getElementById('chapterSelect').selectedIndex].text;
+    const studentName = document.getElementById('studentName').value;
 
     if (!chapterId) return;
 
@@ -161,17 +265,36 @@ async function loadChapterDetails() {
         const chapter = await response.json();
         appState.currentChapter = chapter;
 
-        // Show attempt info
+        // Fetch attempt count for this student and chapter
+        let attemptNumber = 1;
+        try {
+            const resultsResponse = await fetch(`/api/results/${chapterName}`);
+            const attempts = await resultsResponse.json();
+            const studentAttempts = attempts.filter(a => a.student_name === studentName);
+            attemptNumber = studentAttempts.length + 1;
+        } catch (e) {
+            console.log('Could not fetch attempt count, defaulting to 1');
+        }
+
+        // Show attempt info with attempt number
         const attemptInfo = document.getElementById('attemptInfo');
-        attemptInfo.textContent = `📍 Attempting this chapter${appState.chapters.length > 0 ? '' : ''}`;
+        attemptInfo.textContent = `📍 Attempting #${attemptNumber} for this chapter`;
         attemptInfo.style.display = 'block';
 
         // Show answer sheet
         document.getElementById('answerSheet').style.display = 'block';
         document.getElementById('resultCard').style.display = 'none';
 
+        // Reset timer
+        stopTimer();
+        appState.timerSeconds = 0;
+        updateTimerDisplay();
+        
         // Render questions
         renderQuestions(chapter);
+        
+        // Start timer
+        startTimer();
 
     } catch (error) {
         console.error('Error loading chapter details:', error);
@@ -262,6 +385,10 @@ async function submitExam() {
     for (let i = 0; i < numQuestions; i++) {
         submittedAnswers.push(appState.currentAnswers[i] || null);
     }
+    
+    // Stop timer
+    stopTimer();
+    const timeTaken = appState.timerSeconds;
 
     try {
         const response = await fetch('/api/submit-exam', {
@@ -272,7 +399,8 @@ async function submitExam() {
             body: JSON.stringify({
                 student_name: studentName,
                 chapter_id: parseInt(chapterId),
-                submitted_answers: submittedAnswers
+                submitted_answers: submittedAnswers,
+                time_taken: timeTaken
             })
         });
 
@@ -280,7 +408,7 @@ async function submitExam() {
 
         if (result.success) {
             // Show results
-            displayResults(result, submittedAnswers);
+            displayResults(result, submittedAnswers, timeTaken);
 
             // Show confetti effect
             confetti();
@@ -309,7 +437,7 @@ function highlightUnanswered() {
     });
 }
 
-function displayResults(result, submittedAnswers) {
+function displayResults(result, submittedAnswers, timeTaken = 0) {
     // Hide answer sheet, show results
     document.getElementById('answerSheet').style.display = 'none';
     document.getElementById('resultCard').style.display = 'block';
@@ -318,6 +446,7 @@ function displayResults(result, submittedAnswers) {
     document.getElementById('immediateScoreDisplay').textContent = `${result.score}/${result.total}`;
     document.getElementById('immediatePercentageDisplay').textContent = `${result.percentage.toFixed(1)}%`;
     document.getElementById('attemptDisplay').textContent = result.attempt_number;
+    document.getElementById('immediateTimeDisplay').textContent = formatTime(timeTaken);
 
     // Build answer table
     const tbody = document.getElementById('answerTableBody');
@@ -343,7 +472,8 @@ function displayResults(result, submittedAnswers) {
     const attemptData = {
         submitted_answers: submittedAnswers,
         correct_answers: result.correct_answers,
-        total_questions: result.total
+        total_questions: result.total,
+        time_taken: timeTaken
     };
     appState.lastExamAttempt = attemptData;
     renderQuestionReview(attemptData, 'immediateQuestionReview');
