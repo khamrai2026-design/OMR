@@ -35,24 +35,24 @@ def init_db():
 
     # Create subjects table if it doesn't exist
     c.execute('''CREATE TABLE IF NOT EXISTS subjects
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                 (subject_id INTEGER PRIMARY KEY AUTOINCREMENT,
                   subject_name TEXT UNIQUE NOT NULL,
                   description TEXT,
                   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
 
     # Create chapters table with subject_id
     c.execute('''CREATE TABLE IF NOT EXISTS chapters
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                 (chapter_id INTEGER PRIMARY KEY AUTOINCREMENT,
                   subject_id INTEGER NOT NULL DEFAULT 1,
                   chapter_name TEXT UNIQUE NOT NULL,
                   num_questions INTEGER NOT NULL,
                   num_options INTEGER NOT NULL,
                   correct_answers TEXT NOT NULL,
                   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                  FOREIGN KEY (subject_id) REFERENCES subjects(id))''')
+                  FOREIGN KEY (subject_id) REFERENCES subjects(subject_id))''')
 
     c.execute('''CREATE TABLE IF NOT EXISTS attempts
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                 (attempt_id INTEGER PRIMARY KEY AUTOINCREMENT,
                   chapter_id INTEGER NOT NULL,
                   student_name TEXT NOT NULL,
                   submitted_answers TEXT NOT NULL,
@@ -63,7 +63,7 @@ def init_db():
                   start_time TIMESTAMP,
                   end_time TIMESTAMP,
                   submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                  FOREIGN KEY (chapter_id) REFERENCES chapters(id))''')
+                  FOREIGN KEY (chapter_id) REFERENCES chapters(chapter_id))''')
 
     # Migrations
     # 1. Add subject_id to chapters if missing
@@ -114,12 +114,12 @@ def get_subjects():
 @app.route('/api/chapters', methods=['GET'])
 def get_chapters():
     """Get chapters, optionally filtered by subject_id"""
-    subject_id = request.args.get('subject_id')
+    subject_id_filter = request.args.get('subject_id')
     conn = get_db()
 
-    if subject_id:
+    if subject_id_filter:
         chapters = conn.execute('SELECT * FROM chapters WHERE subject_id = ? ORDER BY created_at DESC',
-                                (int(subject_id),)).fetchall()
+                                (int(subject_id_filter),)).fetchall()
     else:
         chapters = conn.execute(
             'SELECT * FROM chapters ORDER BY created_at DESC').fetchall()
@@ -133,7 +133,7 @@ def get_chapter(chapter_id):
     """Get chapter details"""
     conn = get_db()
     chapter = conn.execute(
-        'SELECT * FROM chapters WHERE id = ?', (chapter_id,)).fetchone()
+        'SELECT * FROM chapters WHERE chapter_id = ?', (chapter_id,)).fetchone()
     conn.close()
     return jsonify(dict(chapter) if chapter else {})
 
@@ -143,7 +143,7 @@ def submit_exam():
     """Submit exam answers"""
     data = request.json
     student_name = data.get('student_name')
-    chapter_id = data.get('chapter_id')
+    chapter_id_filter = data.get('chapter_id')
     submitted_answers = data.get('submitted_answers')
     time_taken = data.get('time_taken', 0)  # Time in seconds
     start_time = data.get('start_time')  # ISO format datetime
@@ -153,7 +153,7 @@ def submit_exam():
 
     # Get chapter details
     chapter = conn.execute(
-        'SELECT * FROM chapters WHERE id = ?', (chapter_id,)).fetchone()
+        'SELECT * FROM chapters WHERE chapter_id = ?', (chapter_id_filter,)).fetchone()
     if not chapter:
         return jsonify({'success': False, 'message': 'Chapter not found'}), 404
 
@@ -166,7 +166,7 @@ def submit_exam():
     # Get attempt number
     attempt = conn.execute(
         'SELECT MAX(attempt_number) as max_attempt FROM attempts WHERE chapter_id = ? AND student_name = ?',
-        (chapter_id, student_name)
+        (chapter_id_filter, student_name)
     ).fetchone()
     attempt_number = (attempt['max_attempt'] or 0) + 1
 
@@ -174,7 +174,7 @@ def submit_exam():
     conn.execute(
         '''INSERT INTO attempts (chapter_id, student_name, submitted_answers, score, total_questions, attempt_number, time_taken, start_time, end_time)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-        (chapter_id, student_name, json.dumps(submitted_answers), score, len(
+        (chapter_id_filter, student_name, json.dumps(submitted_answers), score, len(
             correct_answers), attempt_number, time_taken, start_time, end_time)
     )
     conn.commit()
@@ -223,10 +223,34 @@ def get_results(chapter_name):
     attempts = conn.execute('''
         SELECT a.*, c.chapter_name, c.correct_answers
         FROM attempts a
-        JOIN chapters c ON a.chapter_id = c.id
+        JOIN chapters c ON a.chapter_id = c.chapter_id
         WHERE c.chapter_name = ?
         ORDER BY a.submitted_at DESC
     ''', (chapter_name,)).fetchall()
+
+    result_list = []
+    for attempt in attempts:
+        attempt_dict = dict(attempt)
+        result_list.append(attempt_dict)
+
+    conn.close()
+
+    return jsonify(result_list)
+
+
+@app.route('/api/results/chapter/<int:chapter_id>', methods=['GET'])
+def get_results_by_id(chapter_id):
+    """Get results for a chapter by ID"""
+    conn = get_db()
+
+    # Get attempts
+    attempts = conn.execute('''
+        SELECT a.*, c.chapter_name, c.correct_answers
+        FROM attempts a
+        JOIN chapters c ON a.chapter_id = c.chapter_id
+        WHERE c.chapter_id = ?
+        ORDER BY a.submitted_at DESC
+    ''', (chapter_id,)).fetchall()
 
     result_list = []
     for attempt in attempts:
@@ -271,19 +295,24 @@ def get_analytics():
     # Overall stats
     chapters_query = 'SELECT COUNT(*) as count FROM chapters'
     chapters_params = []
+    chapters_conditions = []
+
     if subject_id_filter and subject_id_filter.isdigit():
-        chapters_query += ' WHERE subject_id = ?'
+        chapters_conditions.append('subject_id = ?')
         chapters_params.append(int(subject_id_filter))
     if chapter_id_filter and chapter_id_filter.isdigit():
-        chapters_query += ' WHERE id = ?'
+        chapters_conditions.append('chapter_id = ?')
         chapters_params.append(int(chapter_id_filter))
+
+    if chapters_conditions:
+        chapters_query += ' WHERE ' + ' AND '.join(chapters_conditions)
 
     chapters_count = conn.execute(
         chapters_query, chapters_params).fetchone()['count']
 
     attempts_query = f'''
         SELECT COUNT(*) as count FROM attempts a
-        JOIN chapters c ON a.chapter_id = c.id
+        JOIN chapters c ON a.chapter_id = c.chapter_id
         {where_clause}
     '''
     attempts_count = conn.execute(attempts_query, params).fetchone()['count']
@@ -294,7 +323,7 @@ def get_analytics():
                MAX(CAST(a.score as FLOAT) / a.total_questions * 100) as best_score,
                AVG(CAST(a.score as FLOAT) / a.total_questions) as avg_accuracy
         FROM attempts a
-        JOIN chapters c ON a.chapter_id = c.id
+        JOIN chapters c ON a.chapter_id = c.chapter_id
         {where_clause}
     '''
     avg_result = conn.execute(avg_query, params).fetchone()
@@ -305,7 +334,7 @@ def get_analytics():
     # Best score points
     best_score_query = f'''
         SELECT MAX(a.score) as max_score FROM attempts a
-        JOIN chapters c ON a.chapter_id = c.id
+        JOIN chapters c ON a.chapter_id = c.chapter_id
         {where_clause}
     '''
     best_score_points = conn.execute(best_score_query, params).fetchone()[
@@ -324,33 +353,34 @@ def get_analytics():
 
     join_clause = "AND " + " AND ".join(join_filters) if join_filters else ""
 
-    chapter_where = ""
-    chapter_params = []
+    # For Chapter Stats table, we ONLY filter by Subject (so we see all chapters in the list)
+    table_where_parts = []
+    table_params = []
     if subject_id_filter and subject_id_filter.isdigit():
-        chapter_where = "WHERE c.subject_id = ?"
-        chapter_params.append(int(subject_id_filter))
-    if chapter_id_filter and chapter_id_filter.isdigit():
-        chapter_where = "WHERE c.id = ?"
-        chapter_params.append(int(chapter_id_filter))
+        table_where_parts.append("c.subject_id = ?")
+        table_params.append(int(subject_id_filter))
+
+    table_where_clause = "WHERE " + \
+        " AND ".join(table_where_parts) if table_where_parts else ""
 
     chapter_stats_query = f'''
-        SELECT c.id, c.chapter_name, COUNT(a.id) as total_attempts, 
+        SELECT c.chapter_id, c.chapter_name, COUNT(a.attempt_number) as total_attempts, 
                MAX(CAST(a.score as FLOAT)) as best_score,
                AVG(CAST(a.score as FLOAT) / a.total_questions * 100) as avg_percentage,
                AVG(CAST(a.score as FLOAT) / a.total_questions) as avg_accuracy
         FROM chapters c
-        LEFT JOIN attempts a ON c.id = a.chapter_id {join_clause}
-        {chapter_where}
-        GROUP BY c.id
-        ORDER BY total_attempts DESC
+        LEFT JOIN attempts a ON c.chapter_id = a.chapter_id {join_clause}
+        {table_where_clause}
+        GROUP BY c.chapter_id
+        ORDER BY avg_percentage DESC
     '''
     chapter_stats_raw = conn.execute(
-        chapter_stats_query, join_params + chapter_params).fetchall()
+        chapter_stats_query, join_params + table_params).fetchall()
 
     chapter_stats = []
     for stat in chapter_stats_raw:
         chapter_stats.append({
-            'id': stat['id'],
+            'id': stat['chapter_id'],
             'chapter_name': stat['chapter_name'],
             'total_attempts': stat['total_attempts'] or 0,
             'best_score': stat['best_score'] or 0,
@@ -360,10 +390,10 @@ def get_analytics():
 
     # All attempts for charts
     all_attempts_query = f'''
-        SELECT a.id, a.student_name, a.attempt_number, c.chapter_name, c.id as chapter_id,
+        SELECT a.attempt_number, a.student_name, c.chapter_name, c.chapter_id as chapter_id,
                a.score, a.total_questions, COALESCE(a.time_taken, 0) as time_taken, a.submitted_at
         FROM attempts a
-        JOIN chapters c ON a.chapter_id = c.id
+        JOIN chapters c ON a.chapter_id = c.chapter_id
         {where_clause}
         ORDER BY a.submitted_at DESC
     '''
@@ -440,7 +470,7 @@ def export_chapter_results():
     attempts = conn.execute('''
         SELECT a.*, c.chapter_name, c.correct_answers, c.num_questions
         FROM attempts a
-        JOIN chapters c ON a.chapter_id = c.id
+        JOIN chapters c ON a.chapter_id = c.chapter_id
         WHERE c.chapter_name = ?
         ORDER BY a.submitted_at DESC
     ''', (chapter_name,)).fetchall()
