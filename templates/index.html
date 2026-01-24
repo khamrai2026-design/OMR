@@ -198,20 +198,20 @@
                     <div class="card-header">
                         <h3>Select Attempt</h3>
                     </div>
-                    <form class="exam-form">
-                        <div class="form-group">
+                    <form class="exam-form" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+                        <div class="form-group" style="flex: 1; min-width: 200px;">
                             <label for="resultsSubjectSelect">🎓 Select Subject</label>
                             <select id="resultsSubjectSelect" onchange="loadChaptersForSubject('results')">
                                 <option value="">Loading subjects...</option>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" style="flex: 1; min-width: 200px;">
                             <label for="resultsChapterSelect">📚 Select Chapter</label>
                             <select id="resultsChapterSelect" onchange="loadResults()">
                                 <option value="">Select a subject first...</option>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" style="flex: 1; min-width: 200px;">
                             <label for="attemptSelect">📋 Select Attempt</label>
                             <select id="attemptSelect" onchange="showAttemptDetails()">
                                 <option value="">Select an attempt...</option>
