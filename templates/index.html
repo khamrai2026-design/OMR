@@ -56,7 +56,8 @@
                 <div class="hero-content" style="padding: 2rem;">
                     <span class="hero-badge">🎯 Smart Examination</span>
                     <h2 style="font-size: 2rem;">Take a Test</h2>
-                    <p style="font-size: 0.95rem;">Test your knowledge and track your progress with instant results and detailed analytics.</p>
+                    <p style="font-size: 0.95rem;">Test your knowledge and track your progress with instant results and
+                        detailed analytics.</p>
                 </div>
             </div>
 
@@ -73,7 +74,8 @@
                         </div>
                         <div class="form-group">
                             <label for="examSubjectSelect">🎓 Select Subject</label>
-                            <select id="examSubjectSelect" name="subject" required onchange="loadChaptersForSubject('exam')">
+                            <select id="examSubjectSelect" name="subject" required
+                                onchange="loadChaptersForSubject('exam')">
                                 <option value="">Loading subjects...</option>
                             </select>
                         </div>
@@ -84,7 +86,8 @@
                                     <option value="">Select a subject first...</option>
                                 </select>
                             </div>
-                            <button type="button" id="takeExamBtn" class="btn btn-primary" style="padding: 12px 28px; white-space: nowrap;" onclick="initiateExam()">
+                            <button type="button" id="takeExamBtn" class="btn btn-primary"
+                                style="padding: 12px 28px; white-space: nowrap;" onclick="initiateExam()">
                                 🚀 Take Exam
                             </button>
                         </div>
@@ -99,7 +102,8 @@
                             <span id="questionInfo" class="question-info"></span>
                             <div class="timer-display">
                                 <span id="timerValue" class="timer-value">00:00:00</span>
-                                <button type="button" onclick="toggleTimer()" class="timer-btn" id="timerBtn" title="Pause/Resume Timer">
+                                <button type="button" onclick="toggleTimer()" class="timer-btn" id="timerBtn"
+                                    title="Pause/Resume Timer">
                                     ⏸️ Pause
                                 </button>
                             </div>
@@ -272,7 +276,8 @@
                         <button onclick="exportHistoryResult()" class="btn btn-success btn-lg" style="flex: 1;">
                             📥 Export This Result
                         </button>
-                        <button onclick="exportChapterResults(document.getElementById('resultsChapterSelect').value)" class="btn btn-info btn-lg" style="flex: 1;">
+                        <button onclick="exportChapterResults(document.getElementById('resultsChapterSelect').value)"
+                            class="btn btn-info btn-lg" style="flex: 1;">
                             📊 Export All Results
                         </button>
                     </div>
@@ -317,20 +322,21 @@
                     <div class="card-header">
                         <h3>Filters & Options</h3>
                     </div>
-                    <form class="filters-form">
-                        <div class="form-group">
+                    <form class="filters-form"
+                        style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+                        <div class="form-group" style="flex: 1; min-width: 200px;">
                             <label for="analyticsSubjectFilter">🎓 Filter by Subject</label>
                             <select id="analyticsSubjectFilter" onchange="loadAnalyticsWithFilter()">
                                 <option value="">All Subjects</option>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" style="flex: 1; min-width: 200px;">
                             <label for="analyticsChapterFilter">📚 Filter by Chapter</label>
                             <select id="analyticsChapterFilter" onchange="loadAnalyticsWithFilter()">
                                 <option value="">All Chapters</option>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" style="flex: 1; min-width: 200px;">
                             <label for="analyticsDateFilter">📅 Date Range</label>
                             <select id="analyticsDateFilter" onchange="loadAnalyticsWithFilter()">
                                 <option value="all">All Time</option>
@@ -339,7 +345,8 @@
                                 <option value="90">Last 90 Days</option>
                             </select>
                         </div>
-                        <button type="button" onclick="downloadAnalyticsReport()" class="btn btn-primary">
+                        <button type="button" onclick="downloadAnalyticsReport()" class="btn btn-primary"
+                            style="white-space: nowrap;">
                             📥 Download Report
                         </button>
                     </form>

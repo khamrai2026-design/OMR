@@ -20,24 +20,36 @@ app = Flask(__name__, template_folder='templates', static_folder='static')
 # Database setup
 DATABASE = 'omr_data.db'
 
+
 def get_db():
     """Get database connection"""
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
 
+
 def init_db():
     """Initialize the SQLite database"""
     conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
 
+    # Create subjects table if it doesn't exist
+    c.execute('''CREATE TABLE IF NOT EXISTS subjects
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  subject_name TEXT UNIQUE NOT NULL,
+                  description TEXT,
+                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+
+    # Create chapters table with subject_id
     c.execute('''CREATE TABLE IF NOT EXISTS chapters
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  subject_id INTEGER NOT NULL DEFAULT 1,
                   chapter_name TEXT UNIQUE NOT NULL,
                   num_questions INTEGER NOT NULL,
                   num_options INTEGER NOT NULL,
                   correct_answers TEXT NOT NULL,
-                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                  FOREIGN KEY (subject_id) REFERENCES subjects(id))''')
 
     c.execute('''CREATE TABLE IF NOT EXISTS attempts
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,17 +65,25 @@ def init_db():
                   submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                   FOREIGN KEY (chapter_id) REFERENCES chapters(id))''')
 
-    # Add time_taken, start_time, end_time columns if they don't exist (for database migration)
+    # Migrations
+    # 1. Add subject_id to chapters if missing
+    try:
+        c.execute('SELECT subject_id FROM chapters LIMIT 1')
+    except sqlite3.OperationalError:
+        c.execute(
+            'ALTER TABLE chapters ADD COLUMN subject_id INTEGER NOT NULL DEFAULT 1')
+
+    # 2. Add time_taken, start_time, end_time columns to attempts if missing
     try:
         c.execute('SELECT time_taken FROM attempts LIMIT 1')
     except sqlite3.OperationalError:
         c.execute('ALTER TABLE attempts ADD COLUMN time_taken INTEGER DEFAULT 0')
-    
+
     try:
         c.execute('SELECT start_time FROM attempts LIMIT 1')
     except sqlite3.OperationalError:
         c.execute('ALTER TABLE attempts ADD COLUMN start_time TIMESTAMP')
-    
+
     try:
         c.execute('SELECT end_time FROM attempts LIMIT 1')
     except sqlite3.OperationalError:
@@ -74,41 +94,49 @@ def init_db():
 
 # API Routes
 
+
 @app.route('/')
 def index():
     """Home page"""
     return render_template('index.html')
 
+
 @app.route('/api/subjects', methods=['GET'])
 def get_subjects():
     """Get all subjects"""
     conn = get_db()
-    subjects = conn.execute('SELECT * FROM subjects ORDER BY subject_name').fetchall()
+    subjects = conn.execute(
+        'SELECT * FROM subjects ORDER BY subject_name').fetchall()
     conn.close()
     return jsonify([dict(s) for s in subjects])
+
 
 @app.route('/api/chapters', methods=['GET'])
 def get_chapters():
     """Get chapters, optionally filtered by subject_id"""
     subject_id = request.args.get('subject_id')
     conn = get_db()
-    
+
     if subject_id:
-        chapters = conn.execute('SELECT * FROM chapters WHERE subject_id = ? ORDER BY created_at DESC', 
-                              (int(subject_id),)).fetchall()
+        chapters = conn.execute('SELECT * FROM chapters WHERE subject_id = ? ORDER BY created_at DESC',
+                                (int(subject_id),)).fetchall()
     else:
-        chapters = conn.execute('SELECT * FROM chapters ORDER BY created_at DESC').fetchall()
-    
+        chapters = conn.execute(
+            'SELECT * FROM chapters ORDER BY created_at DESC').fetchall()
+
     conn.close()
     return jsonify([dict(ch) for ch in chapters])
+
 
 @app.route('/api/chapter/<int:chapter_id>', methods=['GET'])
 def get_chapter(chapter_id):
     """Get chapter details"""
     conn = get_db()
-    chapter = conn.execute('SELECT * FROM chapters WHERE id = ?', (chapter_id,)).fetchone()
+    chapter = conn.execute(
+        'SELECT * FROM chapters WHERE id = ?', (chapter_id,)).fetchone()
     conn.close()
     return jsonify(dict(chapter) if chapter else {})
+
 
 @app.route('/api/submit-exam', methods=['POST'])
 def submit_exam():
@@ -122,29 +150,32 @@ def submit_exam():
     end_time = data.get('end_time')      # ISO format datetime
 
     conn = get_db()
-    
+
     # Get chapter details
-    chapter = conn.execute('SELECT * FROM chapters WHERE id = ?', (chapter_id,)).fetchone()
+    chapter = conn.execute(
+        'SELECT * FROM chapters WHERE id = ?', (chapter_id,)).fetchone()
     if not chapter:
         return jsonify({'success': False, 'message': 'Chapter not found'}), 404
 
     correct_answers = json.loads(chapter['correct_answers'])
-    
+
     # Calculate score
-    score = sum(1 for i, ans in enumerate(submitted_answers) if ans == correct_answers[i])
-    
+    score = sum(1 for i, ans in enumerate(
+        submitted_answers) if ans == correct_answers[i])
+
     # Get attempt number
     attempt = conn.execute(
         'SELECT MAX(attempt_number) as max_attempt FROM attempts WHERE chapter_id = ? AND student_name = ?',
         (chapter_id, student_name)
     ).fetchone()
     attempt_number = (attempt['max_attempt'] or 0) + 1
-    
+
     # Save attempt with start_time and end_time
     conn.execute(
         '''INSERT INTO attempts (chapter_id, student_name, submitted_answers, score, total_questions, attempt_number, time_taken, start_time, end_time)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-        (chapter_id, student_name, json.dumps(submitted_answers), score, len(correct_answers), attempt_number, time_taken, start_time, end_time)
+        (chapter_id, student_name, json.dumps(submitted_answers), score, len(
+            correct_answers), attempt_number, time_taken, start_time, end_time)
     )
     conn.commit()
     conn.close()
@@ -166,6 +197,7 @@ def submit_exam():
         'correct_answers': correct_answers
     })
 
+
 def get_grade(percentage):
     """Calculate grade based on percentage"""
     if percentage >= 90:
@@ -181,11 +213,12 @@ def get_grade(percentage):
     else:
         return 'F'
 
+
 @app.route('/api/results/<chapter_name>', methods=['GET'])
 def get_results(chapter_name):
     """Get results for a chapter"""
     conn = get_db()
-    
+
     # Get attempts
     attempts = conn.execute('''
         SELECT a.*, c.chapter_name, c.correct_answers
@@ -194,61 +227,116 @@ def get_results(chapter_name):
         WHERE c.chapter_name = ?
         ORDER BY a.submitted_at DESC
     ''', (chapter_name,)).fetchall()
-    
+
     result_list = []
     for attempt in attempts:
         attempt_dict = dict(attempt)
         result_list.append(attempt_dict)
-    
+
     conn.close()
-    
+
     return jsonify(result_list)
+
 
 @app.route('/api/analytics', methods=['GET'])
 def get_analytics():
     """Get analytics data"""
     conn = get_db()
     student_filter = request.args.get('student', None)
-    
-    # Base query with optional student filter
-    student_where = f"WHERE a.student_name = '{student_filter}'" if student_filter else ""
-    
+    subject_id_filter = request.args.get('subject_id', None)
+    days = request.args.get('days', None)
+
+    # Build WHERE clause and parameters for filters
+    where_clauses = []
+    params = []
+
+    if student_filter:
+        where_clauses.append("a.student_name = ?")
+        params.append(student_filter)
+    if subject_id_filter and subject_id_filter.isdigit():
+        where_clauses.append("c.subject_id = ?")
+        params.append(int(subject_id_filter))
+    if days and days.isdigit():
+        where_clauses.append(
+            "a.submitted_at >= date('now', '-' || ? || ' days')")
+        params.append(days)
+
+    where_clause = "WHERE " + \
+        " AND ".join(where_clauses) if where_clauses else ""
+
     # Overall stats
-    chapters_count = conn.execute('SELECT COUNT(*) as count FROM chapters').fetchone()['count']
-    attempts_count = conn.execute(f'SELECT COUNT(*) as count FROM attempts {student_where}').fetchone()['count']
-    students_count = conn.execute('SELECT COUNT(DISTINCT student_name) as count FROM attempts').fetchone()['count']
-    
+    chapters_query = 'SELECT COUNT(*) as count FROM chapters'
+    chapters_params = []
+    if subject_id_filter and subject_id_filter.isdigit():
+        chapters_query += ' WHERE subject_id = ?'
+        chapters_params.append(int(subject_id_filter))
+
+    chapters_count = conn.execute(
+        chapters_query, chapters_params).fetchone()['count']
+
+    attempts_query = f'''
+        SELECT COUNT(*) as count FROM attempts a
+        JOIN chapters c ON a.chapter_id = c.id
+        {where_clause}
+    '''
+    attempts_count = conn.execute(attempts_query, params).fetchone()['count']
+
     # Average score
-    avg_result = conn.execute(f'''
-        SELECT AVG(CAST(score as FLOAT) / total_questions * 100) as avg_percentage,
-               MAX(CAST(score as FLOAT) / total_questions * 100) as best_score,
-               AVG(CAST(score as FLOAT) / total_questions) as avg_accuracy
-        FROM attempts
-        {student_where}
-    ''').fetchone()
+    avg_query = f'''
+        SELECT AVG(CAST(a.score as FLOAT) / a.total_questions * 100) as avg_percentage,
+               MAX(CAST(a.score as FLOAT) / a.total_questions * 100) as best_score,
+               AVG(CAST(a.score as FLOAT) / a.total_questions) as avg_accuracy
+        FROM attempts a
+        JOIN chapters c ON a.chapter_id = c.id
+        {where_clause}
+    '''
+    avg_result = conn.execute(avg_query, params).fetchone()
     avg_percentage = avg_result['avg_percentage'] or 0
     best_score = avg_result['best_score'] or 0
     avg_accuracy = (avg_result['avg_accuracy'] or 0) * 100
-    
-    # Convert best_score to points (e.g., out of the total in last attempt)
-    best_score_points = conn.execute(f'''
-        SELECT MAX(score) as max_score FROM attempts {student_where}
-    ''').fetchone()['max_score'] or 0
-    
-    # Chapter-wise stats
-    chapter_stats_raw = conn.execute(f'''
+
+    # Best score points
+    best_score_query = f'''
+        SELECT MAX(a.score) as max_score FROM attempts a
+        JOIN chapters c ON a.chapter_id = c.id
+        {where_clause}
+    '''
+    best_score_points = conn.execute(best_score_query, params).fetchone()[
+        'max_score'] or 0
+
+    # Chapter-wise stats (with LEFT JOIN to show all chapters in subject)
+    join_filters = []
+    join_params = []
+    if student_filter:
+        join_filters.append("a.student_name = ?")
+        join_params.append(student_filter)
+    if days and days.isdigit():
+        join_filters.append(
+            "a.submitted_at >= date('now', '-' || ? || ' days')")
+        join_params.append(days)
+
+    join_clause = "AND " + " AND ".join(join_filters) if join_filters else ""
+
+    chapter_where = ""
+    chapter_params = []
+    if subject_id_filter and subject_id_filter.isdigit():
+        chapter_where = "WHERE c.subject_id = ?"
+        chapter_params.append(int(subject_id_filter))
+
+    chapter_stats_query = f'''
         SELECT c.id, c.chapter_name, COUNT(a.id) as total_attempts, 
                MAX(CAST(a.score as FLOAT)) as best_score,
                AVG(CAST(a.score as FLOAT) / a.total_questions * 100) as avg_percentage,
-               AVG(CAST(a.score as FLOAT) / a.total_questions) as avg_accuracy,
-               COUNT(DISTINCT a.student_name) as unique_students
+               AVG(CAST(a.score as FLOAT) / a.total_questions) as avg_accuracy
         FROM chapters c
-        LEFT JOIN attempts a ON c.id = a.chapter_id
-        {'' if not student_filter else f"AND a.student_name = '{student_filter}'"}
+        LEFT JOIN attempts a ON c.id = a.chapter_id {join_clause}
+        {chapter_where}
         GROUP BY c.id
         ORDER BY total_attempts DESC
-    ''').fetchall()
-    
+    '''
+    chapter_stats_raw = conn.execute(
+        chapter_stats_query, join_params + chapter_params).fetchall()
+
     chapter_stats = []
     for stat in chapter_stats_raw:
         chapter_stats.append({
@@ -258,50 +346,36 @@ def get_analytics():
             'avg_percentage': stat['avg_percentage'] or 0,
             'avg_accuracy': (stat['avg_accuracy'] or 0) * 100
         })
-    
-    # Top students
-    top_students = conn.execute('''
-        SELECT student_name, COUNT(*) as attempts,
-               SUM(score) as total_score, SUM(total_questions) as total_questions,
-               ROUND(CAST(SUM(score) as FLOAT) / SUM(total_questions) * 100, 2) as percentage
-        FROM attempts
-        GROUP BY student_name
-        ORDER BY percentage DESC
-        LIMIT 10
-    ''').fetchall()
-    
-    # All attempts with details for charts and detailed stats
-    all_attempts = conn.execute(f'''
+
+    # All attempts for charts
+    all_attempts_query = f'''
         SELECT a.id, a.student_name, a.attempt_number, c.chapter_name, c.id as chapter_id,
-               a.score, a.total_questions, COALESCE(a.time_taken, 0) as time_taken, a.submitted_at, a.submitted_answers as answers
+               a.score, a.total_questions, COALESCE(a.time_taken, 0) as time_taken, a.submitted_at
         FROM attempts a
         JOIN chapters c ON a.chapter_id = c.id
-        {student_where}
+        {where_clause}
         ORDER BY a.submitted_at DESC
-    ''').fetchall()
-    
+    '''
+    all_attempts = conn.execute(all_attempts_query, params).fetchall()
+
     conn.close()
-    
+
     return jsonify({
-        'chapters': chapters_count,
-        'attempts': attempts_count,
-        'students': students_count,
         'total_attempts': attempts_count,
         'avg_score': round(avg_percentage, 2),
-        'avg_percentage': round(avg_percentage, 2),
         'best_score': best_score_points,
         'avg_accuracy': round(avg_accuracy, 2),
         'chapter_stats': chapter_stats,
-        'top_students': [dict(student) for student in top_students],
         'all_attempts': [dict(attempt) for attempt in all_attempts]
     })
+
 
 @app.route('/api/export/exam', methods=['POST'])
 def export_exam():
     """Export exam result as Excel"""
     if not ExcelExporter:
         return jsonify({'success': False, 'message': 'Excel export not available'}), 400
-    
+
     data = request.json
     student_name = data.get('student_name')
     chapter_name = data.get('chapter_name')
@@ -312,7 +386,7 @@ def export_exam():
     submitted_answers = data.get('submitted_answers', [])
     correct_answers = data.get('correct_answers', [])
     submitted_at = data.get('submitted_at')
-    
+
     try:
         excel_data = ExcelExporter.create_exam_report(
             student_name=student_name,
@@ -325,11 +399,11 @@ def export_exam():
             correct_answers=correct_answers,
             submitted_at=submitted_at
         )
-        
+
         # Create filename
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         filename = f"OMR_Report_{student_name}_{chapter_name}_{timestamp}.xlsx"
-        
+
         return send_file(
             BytesIO(excel_data),
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -339,17 +413,18 @@ def export_exam():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
+
 @app.route('/api/export/chapter-results', methods=['POST'])
 def export_chapter_results():
     """Export all results for a chapter as Excel"""
     data = request.json
     chapter_name = data.get('chapter_name')
-    
+
     if not chapter_name:
         return jsonify({'success': False, 'message': 'Chapter name required'}), 400
-    
+
     conn = get_db()
-    
+
     # Get all attempts for this chapter
     attempts = conn.execute('''
         SELECT a.*, c.chapter_name, c.correct_answers, c.num_questions
@@ -358,19 +433,19 @@ def export_chapter_results():
         WHERE c.chapter_name = ?
         ORDER BY a.submitted_at DESC
     ''', (chapter_name,)).fetchall()
-    
+
     if not attempts:
         return jsonify({'success': False, 'message': 'No results found'}), 404
-    
+
     try:
         # Create Excel with multiple sheets (one per attempt or summary sheet)
         output = BytesIO()
         import pandas as pd
         from xlsxwriter import Workbook
-        
+
         workbook = Workbook(output)
         summary_sheet = workbook.add_worksheet('Summary')
-        
+
         # Add summary data
         header_format = workbook.add_format({
             'bold': True,
@@ -378,20 +453,21 @@ def export_chapter_results():
             'font_color': 'white',
             'border': 1
         })
-        
+
         summary_sheet.write('A1', 'Chapter Name', header_format)
         summary_sheet.write('B1', 'Student Name', header_format)
         summary_sheet.write('C1', 'Attempt', header_format)
         summary_sheet.write('D1', 'Score', header_format)
         summary_sheet.write('E1', 'Percentage', header_format)
         summary_sheet.write('F1', 'Submitted At', header_format)
-        
+
         row = 1
         for attempt in attempts:
             correct_answers = json.loads(attempt['correct_answers'])
             num_questions = attempt['num_questions']
-            percentage = (attempt['score'] / num_questions * 100) if num_questions > 0 else 0
-            
+            percentage = (attempt['score'] / num_questions *
+                          100) if num_questions > 0 else 0
+
             summary_sheet.write(row, 0, attempt['chapter_name'])
             summary_sheet.write(row, 1, attempt['student_name'])
             summary_sheet.write(row, 2, attempt['attempt_number'])
@@ -399,7 +475,7 @@ def export_chapter_results():
             summary_sheet.write(row, 4, f"{percentage:.2f}%")
             summary_sheet.write(row, 5, attempt['submitted_at'])
             row += 1
-        
+
         # Set column widths
         summary_sheet.set_column('A:A', 20)
         summary_sheet.set_column('B:B', 20)
@@ -407,13 +483,13 @@ def export_chapter_results():
         summary_sheet.set_column('D:D', 12)
         summary_sheet.set_column('E:E', 15)
         summary_sheet.set_column('F:F', 25)
-        
+
         workbook.close()
         output.seek(0)
-        
+
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         filename = f"Chapter_Results_{chapter_name}_{timestamp}.xlsx"
-        
+
         return send_file(
             output,
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -424,6 +500,7 @@ def export_chapter_results():
         return jsonify({'success': False, 'message': str(e)}), 500
     finally:
         conn.close()
+
 
 if __name__ == '__main__':
     init_db()

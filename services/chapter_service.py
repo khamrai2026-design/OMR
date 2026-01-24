@@ -58,6 +58,15 @@ class ChapterService:
         """
         return self.db_manager.get_all_chapters()
 
+    def get_all_subjects(self) -> pd.DataFrame:
+        """
+        Get all subjects.
+
+        Returns:
+            DataFrame containing all subjects
+        """
+        return self.db_manager.get_all_subjects()
+
     def get_chapter_by_name(self, chapter_name: str) -> Optional[Chapter]:
         """
         Get a chapter by name.

@@ -56,13 +56,40 @@ class ExamPageUI(BaseUI):
 
         # Student Profile Card
         self.open_card("Student Profile")
-        col1, col2 = st.columns(2)
+
+        subjects_df = self.chapter_service.get_all_subjects()
+        subject_names = subjects_df['subject_name'].tolist()
+
+        col1, col2, col3 = st.columns(3)
         with col1:
             student_name = st.text_input(
                 "Full Name", value="Arin Khamrai", placeholder="Enter student name")
         with col2:
+            selected_subject = st.selectbox(
+                "Select Subject",
+                options=subject_names,
+                index=None,
+                placeholder="Select Subject",
+                key="subject_selector"
+            )
+        with col3:
+            chapter_options = []
+            if selected_subject and not subjects_df.empty:
+                subject_row = subjects_df[subjects_df['subject_name']
+                                          == selected_subject].iloc[0]
+                subject_id = subject_row['id']
+                chapter_options = chapters_df[chapters_df['subject_id']
+                                              == subject_id]['chapter_name'].tolist()
+
+            # If no subject is selected, chapter_options is empty
             chapter_name = st.selectbox(
-                "Select Chapter", options=chapters_df['chapter_name'].tolist())
+                "Select Chapter",
+                options=chapter_options,
+                index=None,
+                placeholder="Select Chapter",
+                disabled=not bool(selected_subject),
+                key="chapter_selector"
+            )
         self.close_card()
 
         if not chapter_name:
@@ -101,7 +128,7 @@ class ExamPageUI(BaseUI):
         submitted_answers = []
         # Use 3 columns for a more compact layout
         cols = st.columns(3)
-        
+
         for i in range(chapter.num_questions):
             col_idx = i % 3  # Distribute questions across 3 columns
             with cols[col_idx]:

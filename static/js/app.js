@@ -55,13 +55,13 @@ function changeTheme(themeName) {
 function applyTheme(themeName) {
     const theme = themeConfigs[themeName];
     if (!theme) return;
-    
+
     const root = document.documentElement;
     root.style.setProperty('--primary', theme.primary);
     root.style.setProperty('--primary-dark', theme.primaryDark);
     root.style.setProperty('--secondary', theme.secondary);
     root.style.setProperty('--accent', theme.accent);
-    
+
     // Update theme select dropdown
     const themeSelect = document.getElementById('themeSelect');
     if (themeSelect) {
@@ -72,11 +72,11 @@ function applyTheme(themeName) {
 // ==================== Timer Management ====================
 function startTimer() {
     if (appState.timerRunning) return;
-    
+
     appState.timerRunning = true;
     appState.timerPaused = false;
     updateTimerButton();
-    
+
     appState.timerInterval = setInterval(() => {
         if (!appState.timerPaused) {
             appState.timerSeconds++;
@@ -90,7 +90,7 @@ function toggleTimer() {
         startTimer();
         return;
     }
-    
+
     appState.timerPaused = !appState.timerPaused;
     updateTimerButton();
 }
@@ -108,7 +108,7 @@ function updateTimerDisplay() {
     const hours = Math.floor(appState.timerSeconds / 3600);
     const minutes = Math.floor((appState.timerSeconds % 3600) / 60);
     const seconds = appState.timerSeconds % 60;
-    
+
     const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     document.getElementById('timerValue').textContent = timeString;
 }
@@ -116,7 +116,7 @@ function updateTimerDisplay() {
 function updateTimerButton() {
     const btn = document.getElementById('timerBtn');
     if (!btn) return;
-    
+
     if (appState.timerPaused) {
         btn.textContent = '▶️ Resume';
         btn.classList.remove('playing');
@@ -136,7 +136,7 @@ function formatTime(seconds) {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    
+
     if (hours > 0) {
         return `${hours}h ${minutes}m ${secs}s`;
     } else if (minutes > 0) {
@@ -220,27 +220,27 @@ async function loadSubjects() {
     try {
         const response = await fetch('/api/subjects');
         const subjects = await response.json();
-        
+
         // Populate exam subject select
         const examSubjectSelect = document.getElementById('examSubjectSelect');
         if (examSubjectSelect) {
             examSubjectSelect.innerHTML = subjects.length > 0
-                ? subjects.map(s => `<option value="${s.id}">${s.subject_name}</option>`).join('')
+                ? '<option value="">Select Subject</option>' + subjects.map(s => `<option value="${s.id}">${s.subject_name}</option>`).join('')
                 : '<option value="">No subjects found</option>';
         }
-        
+
         // Populate results subject select
         const resultsSubjectSelect = document.getElementById('resultsSubjectSelect');
         if (resultsSubjectSelect) {
             resultsSubjectSelect.innerHTML = subjects.length > 0
-                ? subjects.map(s => `<option value="${s.id}">${s.subject_name}</option>`).join('')
+                ? '<option value="">Select Subject</option>' + subjects.map(s => `<option value="${s.id}">${s.subject_name}</option>`).join('')
                 : '<option value="">No subjects found</option>';
         }
-        
+
         // Populate analytics subject select
         const analyticsSubjectSelect = document.getElementById('analyticsSubjectFilter');
         if (analyticsSubjectSelect) {
-            analyticsSubjectSelect.innerHTML = '<option value="">All Subjects</option>' + 
+            analyticsSubjectSelect.innerHTML = '<option value="">All Subjects</option>' +
                 (subjects.length > 0
                     ? subjects.map(s => `<option value="${s.id}">${s.subject_name}</option>`).join('')
                     : '');
@@ -252,7 +252,7 @@ async function loadSubjects() {
 
 async function loadChaptersForSubject(page) {
     let subjectId = null;
-    
+
     if (page === 'exam') {
         subjectId = document.getElementById('examSubjectSelect').value;
     } else if (page === 'results') {
@@ -260,32 +260,32 @@ async function loadChaptersForSubject(page) {
     } else if (page === 'analytics') {
         subjectId = document.getElementById('analyticsSubjectFilter').value;
     }
-    
+
     if (!subjectId) {
         // Clear chapters when no subject selected
         const chapterSelect = page === 'exam' ? document.getElementById('chapterSelect') :
-                            page === 'results' ? document.getElementById('resultsChapterSelect') :
-                            document.getElementById('analyticsChapterFilter');
+            page === 'results' ? document.getElementById('resultsChapterSelect') :
+                document.getElementById('analyticsChapterFilter');
         if (chapterSelect) {
             chapterSelect.innerHTML = '<option value="">Select a subject first...</option>';
         }
         return;
     }
-    
+
     try {
         const response = await fetch(`/api/chapters?subject_id=${subjectId}`);
         const chapters = await response.json();
-        
+
         const chapterSelect = page === 'exam' ? document.getElementById('chapterSelect') :
-                            page === 'results' ? document.getElementById('resultsChapterSelect') :
-                            document.getElementById('analyticsChapterFilter');
-        
+            page === 'results' ? document.getElementById('resultsChapterSelect') :
+                document.getElementById('analyticsChapterFilter');
+
         if (chapterSelect) {
             chapterSelect.innerHTML = chapters.length > 0
                 ? chapters.map(ch => `<option value="${ch.id}">${ch.chapter_name}</option>`).join('')
                 : '<option value="">No chapters found</option>';
         }
-        
+
         // Trigger change event if page is results or analytics
         if (page === 'results') {
             loadResults();
@@ -303,7 +303,7 @@ async function loadChaptersForSubject(page) {
 function updateTakeExamButton() {
     const chapterId = document.getElementById('chapterSelect').value;
     const takeExamBtn = document.getElementById('takeExamBtn');
-    
+
     if (chapterId) {
         takeExamBtn.style.display = 'block';
     } else {
@@ -313,12 +313,12 @@ function updateTakeExamButton() {
 
 function initiateExam() {
     const studentName = document.getElementById('studentName').value;
-    
+
     if (!studentName) {
         showAlert('Please enter your name before taking exam', 'warning');
         return;
     }
-    
+
     loadChapterDetails();
 }
 
@@ -357,7 +357,7 @@ async function loadChapterDetails() {
         // Check if resuming an existing attempt
         const timerKey = getTimerKey();
         const existingTimer = localStorage.getItem(timerKey);
-        
+
         if (!existingTimer) {
             // Fresh exam - reset timer and record start time
             stopTimer();
@@ -369,13 +369,13 @@ async function loadChapterDetails() {
             const now = new Date();
             appState.examStartTime = new Date(now.getTime() - (appState.timerSeconds * 1000));
         }
-        
+
         // Render questions
         renderQuestions(chapter);
-        
+
         // Load saved answers (which also restores timer if it exists)
         loadSavedAnswers();
-        
+
         // Only start/resume timer if not already running
         if (!appState.timerRunning) {
             startTimer();
@@ -431,7 +431,7 @@ function renderQuestions(chapter) {
                 // Add selected to current
                 btn.classList.add('selected');
                 appState.currentAnswers[i] = option;
-                
+
                 // Auto-save answers
                 saveAttemptedAnswers();
             };
@@ -442,7 +442,7 @@ function renderQuestions(chapter) {
         questionGroup.appendChild(optionsGrid);
         container.appendChild(questionGroup);
     }
-    
+
     // Load previously saved answers for this chapter
     loadSavedAnswers();
 }
@@ -470,7 +470,7 @@ function saveAttemptedAnswers() {
         elapsedSeconds: appState.timerSeconds
     };
     localStorage.setItem(key, JSON.stringify(savedData));
-    
+
     // Save timer state separately
     const timerKey = getTimerKey();
     const timerData = {
@@ -479,7 +479,7 @@ function saveAttemptedAnswers() {
         lastSavedAt: new Date().toISOString()
     };
     localStorage.setItem(timerKey, JSON.stringify(timerData));
-    
+
     // Show save indicator (optional)
     showSaveIndicator();
 }
@@ -489,7 +489,7 @@ function loadSavedAnswers() {
     const savedData = localStorage.getItem(key);
     const timerKey = getTimerKey();
     const timerData = localStorage.getItem(timerKey);
-    
+
     // Restore timer state first
     if (timerData) {
         try {
@@ -503,12 +503,12 @@ function loadSavedAnswers() {
             console.log('Could not restore timer state');
         }
     }
-    
+
     if (savedData) {
         try {
             const data = JSON.parse(savedData);
             appState.currentAnswers = data.answers;
-            
+
             // Restore selected buttons
             const container = document.getElementById('questionsContainer');
             Object.entries(appState.currentAnswers).forEach(([questionIndex, answer]) => {
@@ -522,7 +522,7 @@ function loadSavedAnswers() {
                     });
                 }
             });
-            
+
             console.log('Restored saved answers');
         } catch (e) {
             console.log('Could not load saved answers');
@@ -556,7 +556,7 @@ function showSaveIndicator() {
         newIndicator.style.transition = 'opacity 0.3s ease';
         newIndicator.textContent = '💾 Answers Saved';
         document.body.appendChild(newIndicator);
-        
+
         // Remove after 2 seconds
         setTimeout(() => {
             newIndicator.style.opacity = '0';
@@ -598,7 +598,7 @@ async function submitExam() {
     for (let i = 0; i < numQuestions; i++) {
         submittedAnswers.push(appState.currentAnswers[i] || null);
     }
-    
+
     // Stop timer and record end time
     stopTimer();
     appState.examEndTime = new Date();
@@ -625,7 +625,7 @@ async function submitExam() {
         if (result.success) {
             // Clear saved answers
             clearSavedAnswers();
-            
+
             // Show results
             displayResults(result, submittedAnswers, timeTaken);
 
@@ -709,12 +709,12 @@ async function exportExamResult() {
     const totalQuestions = document.getElementById('immediateScoreDisplay').textContent.split('/')[1];
     const percentage = parseFloat(document.getElementById('immediatePercentageDisplay').textContent);
     const attemptNumber = parseInt(document.getElementById('attemptDisplay').textContent);
-    
+
     if (!appState.lastExamAttempt) {
         showAlert('No exam result to export', 'warning');
         return;
     }
-    
+
     try {
         const response = await fetch('/api/export/exam', {
             method: 'POST',
@@ -733,11 +733,11 @@ async function exportExamResult() {
                 submitted_at: new Date().toLocaleString()
             })
         });
-        
+
         if (!response.ok) {
             throw new Error('Export failed');
         }
-        
+
         // Get the blob and download
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -748,7 +748,7 @@ async function exportExamResult() {
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-        
+
         showAlert('✅ Exam report exported successfully!', 'success');
     } catch (error) {
         console.error('Error exporting exam:', error);
@@ -761,7 +761,7 @@ async function exportChapterResults(chapterName) {
         showAlert('Please select a chapter', 'warning');
         return;
     }
-    
+
     try {
         const response = await fetch('/api/export/chapter-results', {
             method: 'POST',
@@ -772,11 +772,11 @@ async function exportChapterResults(chapterName) {
                 chapter_name: chapterName
             })
         });
-        
+
         if (!response.ok) {
             throw new Error('Export failed');
         }
-        
+
         // Get the blob and download
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -787,7 +787,7 @@ async function exportChapterResults(chapterName) {
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-        
+
         showAlert('✅ Chapter results exported successfully!', 'success');
     } catch (error) {
         console.error('Error exporting chapter results:', error);
@@ -800,9 +800,9 @@ async function exportHistoryResult() {
         showAlert('Please select an attempt to export', 'warning');
         return;
     }
-    
+
     const attempt = appState.historyActiveAttempt;
-    
+
     try {
         const response = await fetch('/api/export/exam', {
             method: 'POST',
@@ -821,11 +821,11 @@ async function exportHistoryResult() {
                 submitted_at: attempt.submitted_at
             })
         });
-        
+
         if (!response.ok) {
             throw new Error('Export failed');
         }
-        
+
         // Get the blob and download
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -836,7 +836,7 @@ async function exportHistoryResult() {
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-        
+
         showAlert('✅ Result exported successfully!', 'success');
     } catch (error) {
         console.error('Error exporting result:', error);
@@ -880,7 +880,7 @@ async function loadResults() {
     if (!chapterId) return;
 
     try {
-        const response = await fetch(`/api/results/${chapterName}`);
+        const response = await fetch(`/api/results/${encodeURIComponent(chapterName)}`);
         const attempts = await response.json();
 
         const attemptSelect = document.getElementById('attemptSelect');
@@ -889,6 +889,7 @@ async function loadResults() {
         if (attempts.length === 0) {
             attemptSelect.innerHTML = '<option value="">No attempts found</option>';
             historySection.style.display = 'none';
+            document.getElementById('detailedResult').style.display = 'none';
             return;
         }
 
@@ -934,16 +935,19 @@ async function loadResults() {
         }
     } catch (error) {
         console.error('Error loading results:', error);
+        showAlert('Failed to load results. Please try again.', 'error');
     }
 }
 
 function showAttemptDetails() {
-    const chapterName = document.getElementById('resultsChapterSelect').value;
+    const chapterSelect = document.getElementById('resultsChapterSelect');
+    const chapterId = chapterSelect.value;
+    const chapterName = chapterSelect.options[chapterSelect.selectedIndex].text;
     const attemptIdx = parseInt(document.getElementById('attemptSelect').value);
 
-    if (!chapterName || attemptIdx === undefined) return;
+    if (!chapterId || attemptIdx === undefined || isNaN(attemptIdx)) return;
 
-    fetch(`/api/results/${chapterName}`)
+    fetch(`/api/results/${encodeURIComponent(chapterName)}`)
         .then(r => r.json())
         .then(attempts => {
             const attempt = attempts[attemptIdx];
@@ -970,11 +974,14 @@ function showAttemptDetails() {
 
             // Render question review
             appState.historyActiveAttempt = attempt;
-            renderQuestionReview(attempt);
+            renderQuestionReview(attempt, 'questionReview');
 
             document.getElementById('detailedResult').style.display = 'block';
         })
-        .catch(error => console.error('Error showing attempt details:', error));
+        .catch(error => {
+            console.error('Error showing attempt details:', error);
+            showAlert('Failed to load attempt details', 'error');
+        });
 }
 
 function setReviewFilter(filter, containerId) {
@@ -996,8 +1003,13 @@ function setReviewFilter(filter, containerId) {
 
 function renderQuestionReview(attempt, containerId = 'questionReview', filter = 'all') {
     const reviewDiv = document.getElementById(containerId);
-    if (!reviewDiv) return;
+    if (!reviewDiv) {
+        console.error('Review container not found:', containerId);
+        return;
+    }
     reviewDiv.innerHTML = '';
+
+    console.log('Rendering question review for attempt:', attempt);
 
     // Parse answers and correct answers
     const answersData = attempt.answers || attempt.submitted_answers || '[]';
@@ -1006,7 +1018,21 @@ function renderQuestionReview(attempt, containerId = 'questionReview', filter = 
     const correctData = attempt.correct_answers || '[]';
     const correctAnswers = typeof correctData === 'string' ? JSON.parse(correctData) : correctData;
 
+    console.log('Submitted answers:', answers);
+    console.log('Correct answers:', correctAnswers);
+
     const numQuestions = attempt.total_questions || correctAnswers.length;
+
+    if (!correctAnswers || correctAnswers.length === 0) {
+        reviewDiv.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 3.5rem; color: var(--text-muted); background: rgba(0,0,0,0.02); border-radius: 16px; border: 2px dashed var(--border);">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+                <p style="font-weight: 600; font-size: 1.1rem;">No answer key found for this chapter.</p>
+                <p style="font-size: 0.9rem; margin-top: 0.5rem;">Please contact your administrator.</p>
+            </div>
+        `;
+        return;
+    }
 
     let renderedCount = 0;
 
@@ -1100,21 +1126,50 @@ let performanceChart = null;
 let timeVsScoreChart = null;
 
 async function loadAnalytics() {
+    // Just trigger the filtered load since it handles the API call and UI updates
+    loadAnalyticsWithFilter();
+}
+
+async function loadAnalyticsWithFilter() {
+    console.log("loadAnalyticsWithFilter triggered");
     try {
-        const response = await fetch('/api/analytics');
+        const subjectId = document.getElementById('analyticsSubjectFilter').value;
+        const chapterSelect = document.getElementById('analyticsChapterFilter');
+        const dateFilter = document.getElementById('analyticsDateFilter').value;
+
+        console.log("Filters:", { subjectId, chapterFilter: chapterSelect.value, dateFilter });
+
+        // Build API URL
+        let url = '/api/analytics';
+        const params = new URLSearchParams();
+        if (subjectId) params.append('subject_id', subjectId);
+        if (dateFilter && dateFilter !== 'all') params.append('days', dateFilter);
+        if (params.toString()) url += '?' + params.toString();
+
+        console.log("Fetching analytics from:", url);
+
+        const response = await fetch(url);
         const data = await response.json();
 
-        // Load chapter filter
-        const filterSelect = document.getElementById('analyticsChapterFilter');
-        filterSelect.innerHTML = '<option value="">All Chapters</option>';
-        if (data.chapter_stats) {
-            data.chapter_stats.forEach(stat => {
-                const option = document.createElement('option');
-                option.value = stat.chapter_name || 'Unknown';
-                option.textContent = stat.chapter_name || 'Unknown';
-                filterSelect.appendChild(option);
-            });
+        console.log("Analytics data received:", data);
+
+        // Update chapter list ONLY if subject changed (or on first load)
+        // We can check if we need to refresh the chapters list
+        if (subjectId || !chapterSelect.options.length || chapterSelect.options.length <= 1) {
+            const currentVal = chapterSelect.value;
+            chapterSelect.innerHTML = '<option value="">All Chapters</option>';
+            if (data.chapter_stats) {
+                data.chapter_stats.forEach(stat => {
+                    const option = document.createElement('option');
+                    option.value = stat.chapter_name || 'Unknown';
+                    option.textContent = stat.chapter_name || 'Unknown';
+                    if (option.value === currentVal) option.selected = true;
+                    chapterSelect.appendChild(option);
+                });
+            }
         }
+
+        const chapterFilter = chapterSelect.value;
 
         // Update KPIs
         document.getElementById('totalAttempts').textContent = data.total_attempts || 0;
@@ -1122,35 +1177,19 @@ async function loadAnalytics() {
         document.getElementById('bestScore').textContent = data.best_score || 0;
         document.getElementById('avgAccuracy').textContent = (data.avg_accuracy || 0).toFixed(1) + '%';
 
-        // Chart rendering will happen in loadAnalyticsWithFilter
-        loadAnalyticsWithFilter();
-    } catch (error) {
-        console.error('Error loading analytics:', error);
-    }
-}
-
-async function loadAnalyticsWithFilter() {
-    try {
-        const response = await fetch('/api/analytics');
-        const data = await response.json();
-
-        const chapterSelect = document.getElementById('analyticsChapterFilter');
-        const chapterFilter = chapterSelect.value ? chapterSelect.options[chapterSelect.selectedIndex].text : '';
-        const dateFilter = document.getElementById('analyticsDateFilter').value;
-
-        // Filter attempts if needed
+        // Filter attempts by chapter if locally selected
         let filteredAttempts = data.all_attempts || [];
         if (chapterFilter) {
             filteredAttempts = filteredAttempts.filter(a => a.chapter_name === chapterFilter);
         }
 
-        // Update chapter stats
+        // Update chapter stats table
         const tbody = document.getElementById('chapterStatsBody');
         tbody.innerHTML = '';
         if (data.chapter_stats) {
             data.chapter_stats.forEach(stat => {
                 const tr = document.createElement('tr');
-                const progress = ((stat.avg_percentage || 0) / 100 * 100).toFixed(0);
+                const progress = stat.total_attempts > 0 ? (stat.avg_percentage || 0).toFixed(0) : 0;
                 tr.innerHTML = `
                     <td>${stat.chapter_name}</td>
                     <td>${stat.total_attempts || 0}</td>
@@ -1167,7 +1206,7 @@ async function loadAnalyticsWithFilter() {
             });
         }
 
-        // Update detailed stats
+        // Update detailed stats table
         const detailedBody = document.getElementById('detailedStatsBody');
         detailedBody.innerHTML = '';
         (filteredAttempts || []).forEach(attempt => {
@@ -1185,12 +1224,12 @@ async function loadAnalyticsWithFilter() {
                 <td>${grade}</td>
                 <td>${percentage}%</td>
                 <td>${time}</td>
-                <td>${isPassed ? '✓ Pass' : '✗ Fail'}</td>
+                <td><span class="status-badge ${isPassed ? 'status-correct' : 'status-incorrect'}">${isPassed ? '✓ Pass' : '✗ Fail'}</span></td>
             `;
             detailedBody.appendChild(tr);
         });
 
-        // Render charts (if Chart.js available)
+        // Render charts
         if (typeof Chart !== 'undefined') {
             renderPerformanceTrendChart(filteredAttempts || []);
             renderTimeVsScoreChart(filteredAttempts || []);
