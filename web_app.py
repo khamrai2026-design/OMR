@@ -244,6 +244,7 @@ def get_analytics():
     conn = get_db()
     student_filter = request.args.get('student', None)
     subject_id_filter = request.args.get('subject_id', None)
+    chapter_id_filter = request.args.get('chapter_id', None)
     days = request.args.get('days', None)
 
     # Build WHERE clause and parameters for filters
@@ -256,6 +257,9 @@ def get_analytics():
     if subject_id_filter and subject_id_filter.isdigit():
         where_clauses.append("c.subject_id = ?")
         params.append(int(subject_id_filter))
+    if chapter_id_filter and chapter_id_filter.isdigit():
+        where_clauses.append("a.chapter_id = ?")
+        params.append(int(chapter_id_filter))
     if days and days.isdigit():
         where_clauses.append(
             "a.submitted_at >= date('now', '-' || ? || ' days')")
@@ -270,6 +274,9 @@ def get_analytics():
     if subject_id_filter and subject_id_filter.isdigit():
         chapters_query += ' WHERE subject_id = ?'
         chapters_params.append(int(subject_id_filter))
+    if chapter_id_filter and chapter_id_filter.isdigit():
+        chapters_query += ' WHERE id = ?'
+        chapters_params.append(int(chapter_id_filter))
 
     chapters_count = conn.execute(
         chapters_query, chapters_params).fetchone()['count']
@@ -322,6 +329,9 @@ def get_analytics():
     if subject_id_filter and subject_id_filter.isdigit():
         chapter_where = "WHERE c.subject_id = ?"
         chapter_params.append(int(subject_id_filter))
+    if chapter_id_filter and chapter_id_filter.isdigit():
+        chapter_where = "WHERE c.id = ?"
+        chapter_params.append(int(chapter_id_filter))
 
     chapter_stats_query = f'''
         SELECT c.id, c.chapter_name, COUNT(a.id) as total_attempts, 
@@ -340,6 +350,7 @@ def get_analytics():
     chapter_stats = []
     for stat in chapter_stats_raw:
         chapter_stats.append({
+            'id': stat['id'],
             'chapter_name': stat['chapter_name'],
             'total_attempts': stat['total_attempts'] or 0,
             'best_score': stat['best_score'] or 0,

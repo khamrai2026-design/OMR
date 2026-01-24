@@ -1134,15 +1134,16 @@ async function loadAnalyticsWithFilter() {
     console.log("loadAnalyticsWithFilter triggered");
     try {
         const subjectId = document.getElementById('analyticsSubjectFilter').value;
-        const chapterSelect = document.getElementById('analyticsChapterFilter');
+        const chapterId = document.getElementById('analyticsChapterFilter').value;
         const dateFilter = document.getElementById('analyticsDateFilter').value;
 
-        console.log("Filters:", { subjectId, chapterFilter: chapterSelect.value, dateFilter });
+        console.log("Filters:", { subjectId, chapterId, dateFilter });
 
         // Build API URL
         let url = '/api/analytics';
         const params = new URLSearchParams();
         if (subjectId) params.append('subject_id', subjectId);
+        if (chapterId) params.append('chapter_id', chapterId);
         if (dateFilter && dateFilter !== 'all') params.append('days', dateFilter);
         if (params.toString()) url += '?' + params.toString();
 
@@ -1155,13 +1156,13 @@ async function loadAnalyticsWithFilter() {
 
         // Update chapter list ONLY if subject changed (or on first load)
         // We can check if we need to refresh the chapters list
-        if (subjectId || !chapterSelect.options.length || chapterSelect.options.length <= 1) {
-            const currentVal = chapterSelect.value;
+        if (subjectId || !chapterId || chapterId.length <= 1) {
+            const currentVal = chapterId;
             chapterSelect.innerHTML = '<option value="">All Chapters</option>';
             if (data.chapter_stats) {
                 data.chapter_stats.forEach(stat => {
                     const option = document.createElement('option');
-                    option.value = stat.chapter_name || 'Unknown';
+                    option.value = stat.id;
                     option.textContent = stat.chapter_name || 'Unknown';
                     if (option.value === currentVal) option.selected = true;
                     chapterSelect.appendChild(option);
@@ -1177,11 +1178,8 @@ async function loadAnalyticsWithFilter() {
         document.getElementById('bestScore').textContent = data.best_score || 0;
         document.getElementById('avgAccuracy').textContent = (data.avg_accuracy || 0).toFixed(1) + '%';
 
-        // Filter attempts by chapter if locally selected
+        // Data is already filtered by API
         let filteredAttempts = data.all_attempts || [];
-        if (chapterFilter) {
-            filteredAttempts = filteredAttempts.filter(a => a.chapter_name === chapterFilter);
-        }
 
         // Update chapter stats table
         const tbody = document.getElementById('chapterStatsBody');
