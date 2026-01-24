@@ -298,7 +298,6 @@ body {
     border-radius: 8px;
 }
 
-/* ==================== Forms ==================== */
 .exam-form {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -314,6 +313,23 @@ body {
 
 .form-group:nth-child(3) {
     grid-column: 1 / -1;
+}
+
+.filters-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 2rem;
+    align-items: flex-end;
+}
+
+.filters-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.filters-form button {
+    white-space: nowrap;
 }
 
 .form-group label {

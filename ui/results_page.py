@@ -90,6 +90,14 @@ class ResultsPageUI(BaseUI):
 
         submitted_answers = json.loads(att['submitted_answers'])
         chapter = self.chapter_service.get_chapter_by_name(chapter_name)
+        
+        # Parse correct answers if it's a JSON string
+        correct_answers = chapter.correct_answers
+        if isinstance(correct_answers, str):
+            try:
+                correct_answers = json.loads(correct_answers)
+            except (json.JSONDecodeError, TypeError):
+                correct_answers = correct_answers
 
         st.markdown(
             f'<p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">🗓️ Submitted on: {att["submitted_at"]}</p>', unsafe_allow_html=True)
@@ -103,7 +111,7 @@ class ResultsPageUI(BaseUI):
                              horizontal=True, key=f"f_page_{att.name}", label_visibility="collapsed")
 
         df_comp = self.attempt_service.get_answer_comparison(
-            submitted_answers, chapter.correct_answers)
+            submitted_answers, correct_answers)
         df_filtered = FilterHelper.filter_comparison_data(df_comp, f_opt)
 
         html_rows = ""
@@ -138,7 +146,7 @@ class ResultsPageUI(BaseUI):
             percentage=(att['score']/att['total_questions']*100),
             attempt_number=att['attempt_number'],
             submitted_answers=submitted_answers,
-            correct_answers=chapter.correct_answers,
+            correct_answers=correct_answers,
             submitted_at=att['submitted_at']
         )
 

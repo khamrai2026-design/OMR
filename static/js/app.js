@@ -16,8 +16,7 @@ let appState = {
 
 // Initialize app on load
 document.addEventListener('DOMContentLoaded', () => {
-    loadChapters();
-    loadResultsChapters();
+    loadSubjects();
     setupNavigation();
     initializeTheme();
 });
@@ -197,7 +196,7 @@ function showPage(pageId) {
 
     // Load page-specific data
     if (pageId === 'results') {
-        loadResultsChapters();
+        // Subject and chapters will be populated via subject selector
     } else if (pageId === 'analytics') {
         loadAnalytics();
     }
@@ -216,22 +215,90 @@ function setupNavigation() {
     });
 }
 
-// ==================== Chapters ==================== 
-async function loadChapters() {
+// ==================== Subjects & Chapters ====================
+async function loadSubjects() {
     try {
-        const response = await fetch('/api/chapters');
-        const chapters = await response.json();
-        appState.chapters = chapters;
+        const response = await fetch('/api/subjects');
+        const subjects = await response.json();
+        
+        // Populate exam subject select
+        const examSubjectSelect = document.getElementById('examSubjectSelect');
+        if (examSubjectSelect) {
+            examSubjectSelect.innerHTML = subjects.length > 0
+                ? subjects.map(s => `<option value="${s.id}">${s.subject_name}</option>`).join('')
+                : '<option value="">No subjects found</option>';
+        }
+        
+        // Populate results subject select
+        const resultsSubjectSelect = document.getElementById('resultsSubjectSelect');
+        if (resultsSubjectSelect) {
+            resultsSubjectSelect.innerHTML = subjects.length > 0
+                ? subjects.map(s => `<option value="${s.id}">${s.subject_name}</option>`).join('')
+                : '<option value="">No subjects found</option>';
+        }
+        
+        // Populate analytics subject select
+        const analyticsSubjectSelect = document.getElementById('analyticsSubjectFilter');
+        if (analyticsSubjectSelect) {
+            analyticsSubjectSelect.innerHTML = '<option value="">All Subjects</option>' + 
+                (subjects.length > 0
+                    ? subjects.map(s => `<option value="${s.id}">${s.subject_name}</option>`).join('')
+                    : '');
+        }
+    } catch (error) {
+        console.error('Error loading subjects:', error);
+    }
+}
 
-        // Populate exam select
-        const select = document.getElementById('chapterSelect');
-        select.innerHTML = chapters.length > 0
-            ? chapters.map(ch => `<option value="${ch.id}">${ch.chapter_name}</option>`).join('')
-            : '<option value="">No chapters found</option>';
+async function loadChaptersForSubject(page) {
+    let subjectId = null;
+    
+    if (page === 'exam') {
+        subjectId = document.getElementById('examSubjectSelect').value;
+    } else if (page === 'results') {
+        subjectId = document.getElementById('resultsSubjectSelect').value;
+    } else if (page === 'analytics') {
+        subjectId = document.getElementById('analyticsSubjectFilter').value;
+    }
+    
+    if (!subjectId) {
+        // Clear chapters when no subject selected
+        const chapterSelect = page === 'exam' ? document.getElementById('chapterSelect') :
+                            page === 'results' ? document.getElementById('resultsChapterSelect') :
+                            document.getElementById('analyticsChapterFilter');
+        if (chapterSelect) {
+            chapterSelect.innerHTML = '<option value="">Select a subject first...</option>';
+        }
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/chapters?subject_id=${subjectId}`);
+        const chapters = await response.json();
+        
+        const chapterSelect = page === 'exam' ? document.getElementById('chapterSelect') :
+                            page === 'results' ? document.getElementById('resultsChapterSelect') :
+                            document.getElementById('analyticsChapterFilter');
+        
+        if (chapterSelect) {
+            chapterSelect.innerHTML = chapters.length > 0
+                ? chapters.map(ch => `<option value="${ch.id}">${ch.chapter_name}</option>`).join('')
+                : '<option value="">No chapters found</option>';
+        }
+        
+        // Trigger change event if page is results or analytics
+        if (page === 'results') {
+            loadResults();
+        } else if (page === 'analytics') {
+            loadAnalyticsWithFilter();
+        }
     } catch (error) {
         console.error('Error loading chapters:', error);
     }
 }
+
+// ==================== Chapters ====================
+// Chapters are now loaded dynamically via loadChaptersForSubject() after subject selection
 
 function updateTakeExamButton() {
     const chapterId = document.getElementById('chapterSelect').value;
@@ -805,29 +872,12 @@ function confetti() {
 }
 
 // ==================== Results ==================== 
-async function loadResultsChapters() {
-    try {
-        const response = await fetch('/api/chapters');
-        const chapters = await response.json();
-
-        const select = document.getElementById('resultsChapterSelect');
-        select.innerHTML = '<option value="">Select a chapter...</option>';
-
-        chapters.forEach(chapter => {
-            const option = document.createElement('option');
-            option.value = chapter.chapter_name;
-            option.textContent = chapter.chapter_name;
-            select.appendChild(option);
-        });
-    } catch (error) {
-        console.error('Error loading chapters:', error);
-    }
-}
-
 async function loadResults() {
-    const chapterName = document.getElementById('resultsChapterSelect').value;
+    const chapterSelect = document.getElementById('resultsChapterSelect');
+    const chapterId = chapterSelect.value;
+    const chapterName = chapterSelect.options[chapterSelect.selectedIndex].text;
 
-    if (!chapterName) return;
+    if (!chapterId) return;
 
     try {
         const response = await fetch(`/api/results/${chapterName}`);
@@ -1084,7 +1134,8 @@ async function loadAnalyticsWithFilter() {
         const response = await fetch('/api/analytics');
         const data = await response.json();
 
-        const chapterFilter = document.getElementById('analyticsChapterFilter').value;
+        const chapterSelect = document.getElementById('analyticsChapterFilter');
+        const chapterFilter = chapterSelect.value ? chapterSelect.options[chapterSelect.selectedIndex].text : '';
         const dateFilter = document.getElementById('analyticsDateFilter').value;
 
         // Filter attempts if needed

@@ -79,11 +79,26 @@ def index():
     """Home page"""
     return render_template('index.html')
 
+@app.route('/api/subjects', methods=['GET'])
+def get_subjects():
+    """Get all subjects"""
+    conn = get_db()
+    subjects = conn.execute('SELECT * FROM subjects ORDER BY subject_name').fetchall()
+    conn.close()
+    return jsonify([dict(s) for s in subjects])
+
 @app.route('/api/chapters', methods=['GET'])
 def get_chapters():
-    """Get all chapters"""
+    """Get chapters, optionally filtered by subject_id"""
+    subject_id = request.args.get('subject_id')
     conn = get_db()
-    chapters = conn.execute('SELECT * FROM chapters ORDER BY created_at DESC').fetchall()
+    
+    if subject_id:
+        chapters = conn.execute('SELECT * FROM chapters WHERE subject_id = ? ORDER BY created_at DESC', 
+                              (int(subject_id),)).fetchall()
+    else:
+        chapters = conn.execute('SELECT * FROM chapters ORDER BY created_at DESC').fetchall()
+    
     conn.close()
     return jsonify([dict(ch) for ch in chapters])
 

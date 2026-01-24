@@ -71,11 +71,17 @@
                             <input type="text" id="studentName" name="studentName" placeholder="Enter your full name"
                                 required value="Arin Khamrai">
                         </div>
+                        <div class="form-group">
+                            <label for="examSubjectSelect">🎓 Select Subject</label>
+                            <select id="examSubjectSelect" name="subject" required onchange="loadChaptersForSubject('exam')">
+                                <option value="">Loading subjects...</option>
+                            </select>
+                        </div>
                         <div style="display: flex; gap: 1rem; align-items: flex-end;">
                             <div class="form-group" style="flex: 1;">
                                 <label for="chapterSelect">📚 Select Chapter</label>
-                                <select id="chapterSelect" name="chapter" required onchange="loadChapterDetails()">
-                                    <option value="">Loading chapters...</option>
+                                <select id="chapterSelect" name="chapter" required>
+                                    <option value="">Select a subject first...</option>
                                 </select>
                             </div>
                             <button type="button" id="takeExamBtn" class="btn btn-primary" style="padding: 12px 28px; white-space: nowrap;" onclick="initiateExam()">
@@ -190,9 +196,15 @@
                     </div>
                     <form class="exam-form">
                         <div class="form-group">
+                            <label for="resultsSubjectSelect">🎓 Select Subject</label>
+                            <select id="resultsSubjectSelect" onchange="loadChaptersForSubject('results')">
+                                <option value="">Loading subjects...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label for="resultsChapterSelect">📚 Select Chapter</label>
                             <select id="resultsChapterSelect" onchange="loadResults()">
-                                <option value="">Loading chapters...</option>
+                                <option value="">Select a subject first...</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -305,23 +317,27 @@
                     <div class="card-header">
                         <h3>Filters & Options</h3>
                     </div>
-                    <form class="exam-form">
-                        <div class="form-row-2">
-                            <div class="form-group">
-                                <label for="analyticsChapterFilter">📚 Filter by Chapter</label>
-                                <select id="analyticsChapterFilter" onchange="loadAnalyticsWithFilter()">
-                                    <option value="">All Chapters</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="analyticsDateFilter">📅 Date Range</label>
-                                <select id="analyticsDateFilter" onchange="loadAnalyticsWithFilter()">
-                                    <option value="all">All Time</option>
-                                    <option value="7">Last 7 Days</option>
-                                    <option value="30">Last 30 Days</option>
-                                    <option value="90">Last 90 Days</option>
-                                </select>
-                            </div>
+                    <form class="filters-form">
+                        <div class="form-group">
+                            <label for="analyticsSubjectFilter">🎓 Filter by Subject</label>
+                            <select id="analyticsSubjectFilter" onchange="loadAnalyticsWithFilter()">
+                                <option value="">All Subjects</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="analyticsChapterFilter">📚 Filter by Chapter</label>
+                            <select id="analyticsChapterFilter" onchange="loadAnalyticsWithFilter()">
+                                <option value="">All Chapters</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="analyticsDateFilter">📅 Date Range</label>
+                            <select id="analyticsDateFilter" onchange="loadAnalyticsWithFilter()">
+                                <option value="all">All Time</option>
+                                <option value="7">Last 7 Days</option>
+                                <option value="30">Last 30 Days</option>
+                                <option value="90">Last 90 Days</option>
+                            </select>
                         </div>
                         <button type="button" onclick="downloadAnalyticsReport()" class="btn btn-primary">
                             📥 Download Report

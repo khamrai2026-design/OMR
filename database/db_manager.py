@@ -58,15 +58,27 @@ class DatabaseManager:
         with self.get_connection() as conn:
             cursor = conn.cursor()
 
-            # Create chapters table
+            # Create subjects master table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS subjects (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    subject_name TEXT UNIQUE NOT NULL,
+                    description TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+
+            # Create chapters table with subject_id foreign key
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS chapters (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    subject_id INTEGER NOT NULL,
                     chapter_name TEXT UNIQUE NOT NULL,
                     num_questions INTEGER NOT NULL,
                     num_options INTEGER NOT NULL,
                     correct_answers TEXT NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (subject_id) REFERENCES subjects(id)
                 )
             ''')
 
@@ -85,14 +97,15 @@ class DatabaseManager:
                 )
             ''')
 
-    # Chapter operations
+    # Subject operations
 
-    def save_chapter(self, chapter: Chapter) -> Tuple[bool, str]:
+    def save_subject(self, subject_name: str, description: str = "") -> Tuple[bool, str]:
         """
-        Save a chapter to the database.
+        Save a subject to the database.
 
         Args:
-            chapter: Chapter instance to save
+            subject_name: Name of the subject
+            description: Optional description of the subject
 
         Returns:
             Tuple of (success, message)
@@ -101,9 +114,96 @@ class DatabaseManager:
             with self.get_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute('''
-                    INSERT INTO chapters (chapter_name, num_questions, num_options, correct_answers)
-                    VALUES (?, ?, ?, ?)
+                    INSERT INTO subjects (subject_name, description)
+                    VALUES (?, ?)
+                ''', (subject_name, description))
+                return True, f"Subject '{subject_name}' saved successfully!"
+        except sqlite3.IntegrityError:
+            return False, f"Subject '{subject_name}' already exists!"
+        except Exception as e:
+            return False, f"Error saving subject: {str(e)}"
+
+    def get_all_subjects(self) -> pd.DataFrame:
+        """
+        Get all subjects from the database.
+
+        Returns:
+            DataFrame containing all subjects
+        """
+        with self.get_connection() as conn:
+            return pd.read_sql_query("SELECT * FROM subjects", conn)
+
+    def get_subject_by_id(self, subject_id: int) -> Optional[dict]:
+        """
+        Get a subject by its ID.
+
+        Args:
+            subject_id: ID of the subject
+
+        Returns:
+            Dictionary with subject data or None if not found
+        """
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT * FROM subjects WHERE id = ?", (subject_id,))
+            row = cursor.fetchone()
+
+            if row:
+                return {
+                    'id': row[0],
+                    'subject_name': row[1],
+                    'description': row[2],
+                    'created_at': row[3]
+                }
+            return None
+
+    def get_subject_by_name(self, subject_name: str) -> Optional[dict]:
+        """
+        Get a subject by its name.
+
+        Args:
+            subject_name: Name of the subject
+
+        Returns:
+            Dictionary with subject data or None if not found
+        """
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT * FROM subjects WHERE subject_name = ?", (subject_name,))
+            row = cursor.fetchone()
+
+            if row:
+                return {
+                    'id': row[0],
+                    'subject_name': row[1],
+                    'description': row[2],
+                    'created_at': row[3]
+                }
+            return None
+
+    # Chapter operations
+
+    def save_chapter(self, chapter: Chapter, subject_id: int) -> Tuple[bool, str]:
+        """
+        Save a chapter to the database.
+
+        Args:
+            chapter: Chapter instance to save
+            subject_id: ID of the subject this chapter belongs to
+
+        Returns:
+            Tuple of (success, message)
+        """
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    INSERT INTO chapters (subject_id, chapter_name, num_questions, num_options, correct_answers)
+                    VALUES (?, ?, ?, ?, ?)
                 ''', (
+                    subject_id,
                     chapter.chapter_name,
                     chapter.num_questions,
                     chapter.num_options,
