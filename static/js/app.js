@@ -81,6 +81,7 @@ function startTimer() {
         if (!appState.timerPaused) {
             appState.timerSeconds++;
             updateTimerDisplay();
+            saveTimerState(); // Save every second
         }
     }, 1000);
 }
@@ -93,6 +94,7 @@ function toggleTimer() {
 
     appState.timerPaused = !appState.timerPaused;
     updateTimerButton();
+    saveTimerState(); // Save active/pause state
 }
 
 function stopTimer() {
@@ -102,6 +104,24 @@ function stopTimer() {
     }
     appState.timerRunning = false;
     appState.timerPaused = false;
+
+    // We don't save state here as stop usually means submit or reset
+}
+
+function saveTimerState() {
+    // Only save if we have an active exam context
+    const studentName = document.getElementById('studentName')?.value;
+    const chapterId = document.getElementById('chapterSelect')?.value;
+
+    if (studentName && chapterId) {
+        const timerKey = `exam_timer_${studentName}_${chapterId}`;
+        const timerData = {
+            elapsedSeconds: appState.timerSeconds,
+            isPaused: appState.timerPaused,
+            lastSavedAt: new Date().toISOString()
+        };
+        localStorage.setItem(timerKey, JSON.stringify(timerData));
+    }
 }
 
 function updateTimerDisplay() {
